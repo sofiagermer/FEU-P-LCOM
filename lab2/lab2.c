@@ -26,21 +26,32 @@ int main(int argc, char *argv[]) {
   // [must be the last statement before return]
   lcf_cleanup();
 
+  
   return 0;
 }
 
 int(timer_test_read_config)(uint8_t timer, enum timer_status_field field) {
-  /* To be implemented by the students */
-  printf("%s is not yet implemented!\n", __func__);
-
+  // testing the timer argument: 0,1,2 are the only valid timers
+  if(timer < 0 || timer > 2){
+    printf("timer_test_read_config::Invalid input, timer index out of range!\n"); return 1;
+  }
+  uint8_t status; // will hold the timer status
+  // checks if timer_get_conf was successful
+  if (timer_get_conf(timer, &status) != OK) { return 1; } 
+  // checks if timer_display_conf was successful
+  if (timer_display_conf(timer, status, field) != OK) { return 1; } 
+  
   return 1;
 }
 
 int(timer_test_time_base)(uint8_t timer, uint32_t freq) {
-  /* To be implemented by the students */
-  printf("%s is not yet implemented!\n", __func__);
+  // testing the timer argument: 0,1,2 are the only valid timers
+  if(timer < 0 || timer > 2){
+    printf("timer_test_read_config::Invalid input, timer index out of range!\n"); return 1;
+  }
+  if (timer_set_frequency(timer, freq) != OK) { return 1; }
 
-  return 1;
+  return 0;
 }
 
 int(timer_test_int)(uint8_t time) {

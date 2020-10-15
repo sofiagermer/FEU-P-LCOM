@@ -10,7 +10,8 @@
  */
 
 #define TIMER_FREQ 1193182 /**< @brief clock frequency for timer in PC and AT */
-#define TIMER0_IRQ 0 /**< @brief Timer 0 IRQ line */
+#define TIMER_FREQ_MIN 19  /**< @brief lowest working frequency the timer supports is 18.2Hz */
+#define TIMER0_IRQ 0       /**< @brief Timer 0 IRQ line */
 
 /* I/O port addresses */
 
@@ -38,19 +39,29 @@
 
 /* Operating mode: bits 3, 2 and 1 */
 
-#define TIMER_SQR_WAVE (BIT(2) | BIT(1)) /**< @brief Mode 3: square wave generator */
-#define TIMER_RATE_GEN BIT(2)            /**< @brief Mode 2: rate generator */
+#define TIMER_OPERATING_MODE (BIT(3)|BIT(2)|BIT(1)) /**< @brief selects bits with info about operating mode */
+#define TIMER_HW_TRIG_STROBE (BIT(3)|BIT(1))        /**< @brief Mode 5: hardware triggered strobe */
+#define TIMER_SW_TRIG_STROBE BIT(3)                 /**< @brief Mode 4: software triggered strobe */
+#define TIMER_SQR_WAVE (BIT(2) | BIT(1))            /**< @brief Mode 3: square wave generator */
+#define TIMER_RATE_GEN BIT(2)                       /**< @brief Mode 2: rate generator */
+#define TIMER_HW_RETRIG_ONE_SH BIT(1)               /**< @brief Mode 1: hardware retriggerable one-shot */
+#define TIMER_INT_TERM_COUNT 0x00                   /**< @brief Mode 0: interrupt on terminal count*/
 
 /* Counting mode: bit 0 */
 
-#define TIMER_BCD 0x01 /**< @brief Count in BCD */
-#define TIMER_BIN 0x00 /**< @brief Count in binary */
+#define TIMER__COUTING_BASE (BIT(2)|BIT(1)) /**< @brief selects bits with info about couting base */
+#define TIMER_BCD 0x01                      /**< @brief Count in BCD */
+#define TIMER_BIN 0x00                      /**< @brief Count in binary */
 
 /* READ-BACK COMMAND FORMAT */
 
 #define TIMER_RB_COUNT_  BIT(5)
 #define TIMER_RB_STATUS_ BIT(4)
 #define TIMER_RB_SEL(n)  BIT((n) + 1)
+#define TIMER_PORT_SEL(i) ((0x40)+i) /**< @brief selects the port for timer i */
+
+
+#define LST_4_BITS 0x0F      /**< @brief Selects the four last bits */
 
 /**@}*/
 
