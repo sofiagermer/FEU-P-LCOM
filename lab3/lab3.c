@@ -1,12 +1,11 @@
-#include <lcom/lcf.h>
 #include <lcom/lab3.h>
+#include <lcom/lcf.h>
 
 #include <stdbool.h>
 #include <stdint.h>
 
 #include "i8042.h"
 #include "keyboard.h"
-
 
 extern uint32_t sys_inb_counter;
 extern uint8_t scan_code;
@@ -110,8 +109,8 @@ int(kbd_test_poll)() {
   uint8_t bytes_read[2];
 
   while (scan_code != ESC_BREAK_KEY) {
-    
-    if (check_status_register()) { //polls the status register and sees if its ok to read the OB
+
+    if (check_status_register() != OK) { //polls the status register and sees if its ok to read the OB
       read_out_buffer(&scan_code);
 
       //exactly the same as the test_scan()
@@ -135,10 +134,7 @@ int(kbd_test_poll)() {
           return 1;
         }
       }
-      return 0;
     }
-
-    tickdelay(micros_to_ticks(DELAY_US));
   }
 
   if (kbd_print_no_sysinb(sys_inb_counter) != OK) {
@@ -147,10 +143,10 @@ int(kbd_test_poll)() {
     return 1;
   }
 
-  uint8_t old_command_byte;
+  /* uint8_t old_command_byte;
   uint8_t new_command_byte;
 
-  if (issue_command(READ_CMD_BYTE,0) != OK) {
+  if (issue_command(READ_CMD_BYTE, 0) != OK) {
     printf("ERROR:Unable to write command to KBC!\n");
     return 1;
   }
@@ -162,22 +158,22 @@ int(kbd_test_poll)() {
 
   new_command_byte = old_command_byte | CMD_BYTE_EN_INT_K;
 
-  if (issue_command(WRITE_CMD_BYTE,new_command_byte) != OK) {
+  if (issue_command(WRITE_CMD_BYTE, new_command_byte) != OK) {
     printf("ERROR:Unable to write command to KBC!\n");
     return 1;
-  }
+  } */
 
   return 0;
 }
 
 int(kbd_test_timed_scan)(uint8_t n) {
-  uint8_t kbd_id, timer_id, scan_code_size = 0, counter = 0, time_passed = 0;
+  uint8_t kbd_id, timer_id, scan_code_size = 0;
   uint8_t bytes_read[2];
   int ipc_status, r;
   message msg;
   bool more_to_read = false;
-
-  if (n<1) {
+  
+  if (n < 1) {
     printf("ERROR:Invalid input, n should be higher than 1!\n");
     return 1;
   }
@@ -192,7 +188,7 @@ int(kbd_test_timed_scan)(uint8_t n) {
     return 1;
   }
 
-  while (scan_code != ESC_BREAK_KEY || time_passed < n) {
+  while (scan_code != ESC_BREAK_KEY && counter < (n*60)) {
     if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
       printf("driver_receive failed with: %d", r);
       continue;
@@ -223,13 +219,11 @@ int(kbd_test_timed_scan)(uint8_t n) {
                 return 1;
               }
             }
+            counter = 0;
           }
 
           if (msg.m_notify.interrupts & timer_id) {
             timer_int_handler();
-            if((counter % 60) == 0) {
-              time_passed++;
-            }
           }
 
           break;
@@ -254,4 +248,3 @@ int(kbd_test_timed_scan)(uint8_t n) {
 
   return 0;
 }
-

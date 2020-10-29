@@ -63,7 +63,7 @@ int read_out_buffer(uint8_t *info) {
 
 
 void (kbc_ih)(void) {
-  uint8_t status, scan_code;
+  uint8_t status;
   read_status_register(&status);
 
   // checks if the output buffer is full  
