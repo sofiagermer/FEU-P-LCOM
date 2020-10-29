@@ -77,7 +77,7 @@ int(timer_test_int)(uint8_t time) {
         if (is_ipc_notify(ipc_status)) { // received notification
             switch (_ENDPOINT_P(msg.m_source)) {
                 case HARDWARE: // hardware interrupt notification
-                    if (msg.m_notify.interrupts & BIT(bit)) { // subscribed interrupt BIT MASK
+                    if (msg.m_notify.interrupts & bit) { // subscribed interrupt BIT MASK
                         timer_int_handler();
                         if (counter % 60 == 0) { //invoke once per second the timer_print_elapsed_time()
                             timer_print_elapsed_time();

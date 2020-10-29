@@ -59,8 +59,7 @@ int (timer_set_frequency)(uint8_t timer, uint32_t freq) {
 }
 
 int (timer_subscribe_int)(uint8_t *bit_no) {
-    hook_id = 0; //caller should initialize it with a value that will be used in the interrupt notifications
-    *bit_no = hook_id; //must return, via its input argument, the value that it has passed to the kernel
+    *bit_no = BIT(hook_id); //must return, via its input argument, the value that it has passed to the kernel
     //IQR0 -> TIMER0
     if(sys_irqsetpolicy(TIMER0_IRQ, IRQ_REENABLE, &hook_id)!= OK){
         printf("timer_subscribe_int::ERROR in setting policy !\n");
