@@ -106,7 +106,7 @@ int (timer_get_conf)(uint8_t timer, uint8_t *st) {
       break;
   }
 
-  if (util_sys_inb(TIMER_0, st) != OK) {
+  if (util_sys_inb(TIMER, st) != OK) {
 	  printf("timer_get_conf::ERROR receiving the output from the timer!\n"); return 1; 
   }
 	return 0;
@@ -179,14 +179,15 @@ int (timer_display_conf)(uint8_t timer, uint8_t st, enum timer_status_field fiel
       }
   } 
   else if (field == tsf_base) {                              // timer counting base 
-  // select bit 0
-    switch (st & TIMER__COUTING_BASE) {
+    if (st & TIMER_BCD) config.bcd = true; 
+    else config.bcd = false;
+    /* switch (st & TIMER_COUTING_BASE) {
       case TIMER_BCD:
         config.bcd = true; // true if couting in bcd
         break;
       default:
         config.bcd = false; 
-    }
+    } */
   }
 
   else {

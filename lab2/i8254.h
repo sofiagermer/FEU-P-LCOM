@@ -49,8 +49,8 @@
 
 /* Counting mode: bit 0 */
 
-#define TIMER__COUTING_BASE (BIT(2)|BIT(1)) /**< @brief selects bits with info about couting base */
-#define TIMER_BCD 0x01                      /**< @brief Count in BCD */
+#define TIMER_COUTING_BASE BIT(0) /**< @brief selects bits with info about couting base */
+#define TIMER_BCD BIT(0)                     /**< @brief Count in BCD */
 #define TIMER_BIN 0x00                      /**< @brief Count in binary */
 
 /* READ-BACK COMMAND FORMAT */

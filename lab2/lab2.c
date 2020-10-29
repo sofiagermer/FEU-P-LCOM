@@ -91,8 +91,11 @@ int(timer_test_int)(uint8_t time) {
             /* no standard messages expected: do nothing */
         }
     }
-    if (timer_unsubscribe_int() != 0)
+    if (timer_unsubscribe_int() != 0) {
         printf("ERROR: Unsubscribe failed");
-    return 1;
+        return 1;    
+    }
+
+    return 0;
 }
 
