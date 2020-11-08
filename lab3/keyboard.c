@@ -43,13 +43,11 @@ void read_status_register(uint8_t *stat) {
 }
 
 
-int check_status_register() {
-  uint8_t temp; //hold the status
-  read_status_register(&temp);
-  if ((temp & (KBD_PAR_ERROR | KBD_TIME_ERROR | KBD_AUX)) != 0) {
-      return 1;
-    }
-  return 0;
+int output_full(uint8_t *st){
+    read_status_register(st);
+    if(st & KBD_OBF)
+      return OK;
+    return FAIL
 }
 
 
@@ -62,26 +60,32 @@ int read_out_buffer(uint8_t *info) {
 }
 
 
-void (kbc_ih)(void) {
+void(kbc_ih)(void){
   uint8_t status;
-  read_status_register(&status);
-
-  // checks if the output buffer is full  
-  if (status & KBD_OBF) {
-
-    //reads scan code from output buffer               
-    if (read_out_buffer(&scan_code) != OK) { 
-      scan_code = 0;
-      return;                                
+  output_full(status);
+  uint8_t bytes_read[2];
+  bool more_to_read = true;
+  int scan_code_size = 0;
+  if(status == OK){
+    if(status(KBD_PAR_ERROR | KBD_TIME_ERROR | KBD_AUX) == error){
+      return 1;
     }
-
-    //checks if there is signal of an error
-    if (check_status_register() != OK) { 
-      // discards the scan code
-      scan_code = 0;                                      
-      return;                                           
+    else{
+      if (scan_code == TWO_BYTES_CODE) {
+        more_to_read = true;
+        bytes_read[0] = scan_code;
+      }
+      else if (more_to_read) {
+        bytes_read[1] = scan_code;
+        scan_code_size = 2;
+        more_to_read = false;
+      }
+      else {
+        bytes_read[0] = scan_code;
+        scan_code_size = 1;
+      }
+      }
     }
-  }
 }
 
 

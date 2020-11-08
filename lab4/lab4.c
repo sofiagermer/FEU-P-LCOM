@@ -5,6 +5,12 @@
 #include <stdio.h>
 
 // Any header files included below this line should have been created by you
+#include "i8042.h"
+#include "mouse.h"
+
+
+extern uint8_t packet[]; //array of bytes, packet read from the mouse
+extern bool mouse_last_byte_of_packet; //signals that the last byte of a packet was read
 
 int main(int argc, char *argv[]) {
   // sets the language of LCF messages (can be either EN-US or PT-PT)
@@ -31,10 +37,62 @@ int main(int argc, char *argv[]) {
 }
 
 
+
 int (mouse_test_packet)(uint32_t cnt) {
-    /* To be completed */
-    printf("%s(%u): under construction\n", __func__, cnt);
-    return 1;
+  
+  int ipc_status, r;
+  message msg;
+  uint8_t mouse_id;
+  uint32_t counter_packets = 0;
+
+  if (mouse_subscribe_int(&mouse_id) != OK) {
+    printf("ERROR: Subsribe failed!\n");
+    return FAIL;
+  }
+  
+  if (issue_command_to_kbc(WRITE_BYTE_TO_MOUSE, EN_DATA_REPORT) != OK) {
+    printf("ERROR::Unable to enable data report!\n");
+    return FAIL;
+  }
+
+  while (counter_packets < cnt) {
+    if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
+      printf("driver_receive failed with: %d", r);
+      continue;
+    }
+    if (is_ipc_notify(ipc_status)) { // received notification
+      switch (_ENDPOINT_P(msg.m_source)) {
+        case HARDWARE:                            // hardware interrupt notification
+          if (msg.m_notify.interrupts & mouse_id) { // subscribed interrupt BIT MASK
+            
+            mouse_ih();
+            
+            counter_packets++;
+            if (mouse_last_byte_of_packet) {
+              struct packet new_packet;
+              mouse_parse_packet(packet, &new_packet);
+              mouse_print_packet(&new_packet);
+            }
+          }
+          break;
+        default:
+          break; /* no other notifications expected: do nothing */
+      }
+    }
+    else { /* received a standard message, not a notification */
+           /* no standard messages expected: do nothing */
+    }
+  }
+  if (issue_command_to_kbc(WRITE_BYTE_TO_MOUSE, DIS_DATA_REPORT) != OK) {
+    printf("ERROR::Unable to enable data report!\n");
+    return FAIL;
+  }
+
+  if (mouse_unsubscribe_int() != OK) {
+    printf("ERROR::Unsubsribe failed!\n");
+    return FAIL;
+  }
+  return OK;
 }
 
 int (mouse_test_async)(uint8_t idle_time) {
@@ -43,7 +101,7 @@ int (mouse_test_async)(uint8_t idle_time) {
     return 1;
 }
 
-int (mouse_test_gesture)() {
+int (mouse_test_gesture)(uint8_t x_len, uint8_t tolerance) {
     /* To be completed */
     printf("%s: under construction\n", __func__);
     return 1;
