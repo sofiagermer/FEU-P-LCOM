@@ -7,9 +7,9 @@ int mouse_unsubscribe_int();
 
 void read_status_register(uint8_t *stat);
 
-int output_empty(uint8_t *st);
+int output_empty();
 
-int input_empty(uint8_t *st);
+int input_empty();
 
 int read_out_buffer(uint8_t *info);
 

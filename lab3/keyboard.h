@@ -11,6 +11,10 @@ void read_status_register(uint8_t *stat);
 
 int check_status_register();
 
+int output_full();
+
+int input_empty();
+
 int read_out_buffer(uint8_t *info);
 
 void (kbc_ih)(void);

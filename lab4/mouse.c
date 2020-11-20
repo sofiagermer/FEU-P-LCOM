@@ -6,8 +6,9 @@
 
 
 static int mouse_hook_id = 1; //hook id used for the mouse
-uint8_t packet[3]; //array of bytes, packet read from the mouse
-bool mouse_last_byte_of_packet; //signals that the last byte of a packet was read
+//uint8_t packet[3]; //array of bytes, packet read from the mouse
+//bool mouse_last_byte_of_packet; //signals that the last byte of a packet was read
+uint8_t mouse_byte_of_packet;
 
 int mouse_subscribe_int(uint8_t *bit_no) {
   *bit_no = BIT(mouse_hook_id);
@@ -37,7 +38,7 @@ void read_status_register(uint8_t *stat) {
 
 int output_full() {
     uint8_t st;
-    read_status_register(st);
+    read_status_register(&st);
     if(st & KBD_OBF)
       return OK;
     return FAIL;
@@ -46,7 +47,7 @@ int output_full() {
 
 int input_empty() {
     uint8_t st;
-    read_status_register(st);
+    read_status_register(&st);
     if(st & KBD_IBF)
       return FAIL;
     return OK;
@@ -62,8 +63,8 @@ int read_out_buffer(uint8_t *info) {
 }
 
 
-void (mouse_ih)(void) {
-  uint8_t aux, st;
+/* void (mouse_ih)(void) {
+  uint8_t aux;
   static uint8_t index = 1;
   if (mouse_last_byte_of_packet) {
       index = 0;
@@ -78,6 +79,15 @@ void (mouse_ih)(void) {
     index++;
     if (index == 3) {
       mouse_last_byte_of_packet = true;
+    }
+  }
+} */
+
+void (mouse_ih)(void) {
+  if (output_full() == OK) {
+    if (read_out_buffer(&mouse_byte_of_packet) != OK) {
+      printf("ERROR::Error reading the out buffer!\n");
+      return;
     }
   }
 }
@@ -113,7 +123,6 @@ void mouse_parse_packet(uint8_t packet[], struct packet *new_packet) {
 
 
 int issue_command_to_kbc(uint8_t command, uint8_t arguments) {
-  uint8_t status;
   uint8_t attemps = 0; //number of attemps the function will try to issue the command
 
   //stops after 4 attemps
@@ -153,7 +162,6 @@ int issue_command_to_mouse(uint8_t command) {
   uint8_t response;
   uint8_t attemps = 0; //number of attemps the function will try to issue the command
   bool write = false;
-  uint8_t st;
   while (attemps < 4) {
     if (input_empty() == OK) {
       if (sys_outb(IN_BUFF, command) != OK) {

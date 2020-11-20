@@ -3,13 +3,15 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-
 #include "i8042.h"
 #include "keyboard.h"
-
 extern uint32_t sys_inb_counter;
-extern uint8_t scan_code;
 extern unsigned int counter;
+
+extern bool keyboard_done_getting_scancodes; //signals that there is one more byte to read from the outbuuf
+extern uint8_t bytes_read[2];
+extern int scan_code_size;
+extern uint8_t scan_code;
 
 int main(int argc, char *argv[]) {
   // sets the language of LCF messages (can be either EN-US or PT-PT)
@@ -36,11 +38,9 @@ int main(int argc, char *argv[]) {
 }
 
 int(kbd_test_scan)() {
-  uint8_t kbd_id, scan_code_size = 0;
-  uint8_t bytes_read[2];
+  uint8_t kbd_id;
   int ipc_status, r;
   message msg;
-  bool more_to_read = false;
 
   if (kbd_subscribe_int(&kbd_id) != OK) {
     printf("ERROR: Subsribe failed!\n");
@@ -56,23 +56,9 @@ int(kbd_test_scan)() {
       switch (_ENDPOINT_P(msg.m_source)) {
         case HARDWARE:                            // hardware interrupt notification
           if (msg.m_notify.interrupts & kbd_id) { // subscribed interrupt BIT MASK
-            kbc_ih();                             // reads the scan code and checks if there were some error
+            kbc_ih();                         // reads the scan code and checks if there were some error
 
-            if (scan_code == TWO_BYTES_CODE) {
-              more_to_read = true;
-              bytes_read[0] = scan_code;
-            }
-            else if (more_to_read) {
-              bytes_read[1] = scan_code;
-              scan_code_size = 2;
-              more_to_read = false;
-            }
-            else {
-              bytes_read[0] = scan_code;
-              scan_code_size = 1;
-            }
-
-            if (!more_to_read) {
+            if (keyboard_done_getting_scancodes) {
               if (kbd_print_scancode(!(scan_code & BREAK_CODE), scan_code_size, bytes_read) != OK) {
                 printf("ERROR::Failure in kbd_print_scancode()!\n");
                 return 1;
@@ -104,31 +90,12 @@ int(kbd_test_scan)() {
 }
 
 int(kbd_test_poll)() {
-  bool more_to_read = false;
-  uint8_t scan_code_size = 0;
-  uint8_t bytes_read[2];
-
   while (scan_code != ESC_BREAK_KEY) {
 
-    if (check_status_register() != OK) { //polls the status register and sees if its ok to read the OB
-      read_out_buffer(&scan_code);
+    if (check_status_register() == OK) { //polls the status register and sees if its ok to read the OB
+      kbc_ih();
 
-      //exactly the same as the test_scan()
-      if (scan_code == TWO_BYTES_CODE) {
-        more_to_read = true;
-        bytes_read[0] = scan_code;
-      }
-      else if (more_to_read) {
-        bytes_read[1] = scan_code;
-        scan_code_size = 2;
-        more_to_read = false;
-      }
-      else {
-        bytes_read[0] = scan_code;
-        scan_code_size = 1;
-      }
-
-      if (!more_to_read) {
+      if (keyboard_done_getting_scancodes) {
         if (kbd_print_scancode(!(scan_code & BREAK_CODE), scan_code_size, bytes_read) != OK) {
           printf("ERROR::Failure in kbd_print_scancode()!\n");
           return 1;
@@ -143,7 +110,7 @@ int(kbd_test_poll)() {
     return 1;
   }
 
-  /* uint8_t old_command_byte;
+  uint8_t old_command_byte;
   uint8_t new_command_byte;
 
   if (issue_command(READ_CMD_BYTE, 0) != OK) {
@@ -161,17 +128,15 @@ int(kbd_test_poll)() {
   if (issue_command(WRITE_CMD_BYTE, new_command_byte) != OK) {
     printf("ERROR:Unable to write command to KBC!\n");
     return 1;
-  } */
+  }
 
   return 0;
 }
 
 int(kbd_test_timed_scan)(uint8_t n) {
-  uint8_t kbd_id, timer_id, scan_code_size = 0;
-  uint8_t bytes_read[2];
+  uint8_t kbd_id, timer_id;
   int ipc_status, r;
   message msg;
-  bool more_to_read = false;
   
   if (n < 1) {
     printf("ERROR:Invalid input, n should be higher than 1!\n");
@@ -185,7 +150,6 @@ int(kbd_test_timed_scan)(uint8_t n) {
 
   if (timer_subscribe_int(&timer_id) != OK) {
     printf("ERROR: Subsribe failed!\n");
-    return 1;
   }
 
   while (scan_code != ESC_BREAK_KEY && counter < (n*60)) {
@@ -193,27 +157,14 @@ int(kbd_test_timed_scan)(uint8_t n) {
       printf("driver_receive failed with: %d", r);
       continue;
     }
+
     if (is_ipc_notify(ipc_status)) { // received notification
       switch (_ENDPOINT_P(msg.m_source)) {
         case HARDWARE:                            // hardware interrupt notification
           if (msg.m_notify.interrupts & kbd_id) { // subscribed interrupt BIT MASK
             kbc_ih();                             // reads the scan code and checks if there were some error
 
-            if (scan_code == TWO_BYTES_CODE) {
-              more_to_read = true;
-              bytes_read[0] = scan_code;
-            }
-            else if (more_to_read) {
-              bytes_read[1] = scan_code;
-              scan_code_size = 2;
-              more_to_read = false;
-            }
-            else {
-              bytes_read[0] = scan_code;
-              scan_code_size = 1;
-            }
-
-            if (!more_to_read) {
+            if (keyboard_done_getting_scancodes) {
               if (kbd_print_scancode(!(scan_code & BREAK_CODE), scan_code_size, bytes_read) != OK) {
                 printf("ERROR::Failure in kbd_print_scancode()!\n");
                 return 1;

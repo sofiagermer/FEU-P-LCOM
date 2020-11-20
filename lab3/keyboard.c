@@ -6,8 +6,12 @@
 
 
 static int kbd_hook_id = 1; //hook id used for the keyboard
-uint8_t scan_code = 0;
 uint32_t sys_inb_counter = 0;
+
+bool keyboard_done_getting_scancodes = false; //signals that there is one more byte to read from the outbuuf
+uint8_t bytes_read[2];
+int scan_code_size=0;
+uint8_t scan_code;
 
 int cnt_sys_inb(port_t port, uint8_t *byte) {
   if (util_sys_inb(port, byte))
@@ -31,7 +35,7 @@ int kbd_unsubscribe_int() {
   if (sys_irqrmpolicy(&kbd_hook_id) != OK) {
     printf("kbd_unsubscribe_int::ERROR removing policy!\n");
     return 1;
-  };
+  }
   return 0;
 }
 
@@ -43,11 +47,31 @@ void read_status_register(uint8_t *stat) {
 }
 
 
-int output_full(uint8_t *st){
-    read_status_register(st);
+int check_status_register() {
+  uint8_t temp=0; //hold the status
+  read_status_register(&temp);
+  if ((temp & (KBD_PAR_ERROR | KBD_TIME_ERROR | KBD_AUX)) != 0) {
+      return 1;
+    }
+  return 0;
+}
+
+
+int output_full() {
+    uint8_t st;
+    read_status_register(&st);
     if(st & KBD_OBF)
       return OK;
-    return FAIL
+    return 1;
+}
+
+
+int input_empty() {
+    uint8_t st;
+    read_status_register(&st);
+    if(st & KBD_IBF)
+      return 1;
+    return OK;
 }
 
 
@@ -60,46 +84,57 @@ int read_out_buffer(uint8_t *info) {
 }
 
 
-void(kbc_ih)(void){
-  uint8_t status;
-  output_full(status);
-  uint8_t bytes_read[2];
-  bool more_to_read = true;
-  int scan_code_size = 0;
-  if(status == OK){
-    if(status(KBD_PAR_ERROR | KBD_TIME_ERROR | KBD_AUX) == error){
-      return 1;
+void(kbc_ih)(void) {
+  if (keyboard_done_getting_scancodes) {
+      keyboard_done_getting_scancodes = false;
+      scan_code_size = 0;
+  }
+  // checks if the output buffer is full  
+  if (output_full()==OK) {
+
+    //reads scan code from output buffer               
+    if (read_out_buffer(&scan_code) != OK) { 
+      scan_code = 0;
+      return;                                
     }
-    else{
-      if (scan_code == TWO_BYTES_CODE) {
-        more_to_read = true;
-        bytes_read[0] = scan_code;
-      }
-      else if (more_to_read) {
-        bytes_read[1] = scan_code;
-        scan_code_size = 2;
-        more_to_read = false;
-      }
-      else {
-        bytes_read[0] = scan_code;
-        scan_code_size = 1;
-      }
-      }
+
+    //checks if there is signal of an error
+    if (check_status_register() != OK) { 
+      // discards the scan code
+      scan_code = 0;                                      
+      return;                                          
     }
+    bytes_read[scan_code_size++] = scan_code;
+    if (scan_code != TWO_BYTES_CODE) 
+      keyboard_done_getting_scancodes = true;
+    /* printf("0\n");
+    if (scan_code == TWO_BYTES_CODE) {
+        
+        bytes_read[0] = scan_code;
+    }
+    else if (keyboard_done_getting_scancodes) {
+      bytes_read[1] = scan_code;
+      scan_code_size = 2;
+      keyboard_done_getting_scancodes = false;
+    }
+    else {
+      keyboard_done_getting_scancodes = false;
+      bytes_read[0] = scan_code;
+      scan_code_size = 1;
+    } */
+  }
 }
 
 
 int issue_command(uint8_t command, uint8_t arguments) {
-  uint8_t status;
   uint8_t attemps = 0; //number of attemps the function will try to issue the command
 
   //stops after 4 attemps
   while (attemps < 4) {
     attemps++;
-    read_status_register(&status);
 
     // input buffer should not be full
-    if ((status & KBD_IBF) == 0) {
+    if (input_empty() == OK) {
       //writtes command
       if (sys_outb(CMD_REG, command) != OK) {
         printf("ERROR::Unable to write command to register!\n");
@@ -108,16 +143,14 @@ int issue_command(uint8_t command, uint8_t arguments) {
       //in case the command is WriteCommandByte it needs the new command (arguments)
       if (command == WRITE_CMD_BYTE) {
         if (sys_outb(CMD_ARG_REG, arguments) != OK) {
-          printf("ERROR::Unable to writes arguments to regiter!\n");
+          printf("ERROR::Unable to writes arguments to register!\n");
           return 1;
         }
       }
     }
-
-    //wait 20ms before trying again
     tickdelay(micros_to_ticks(DELAY_US));
+    //wait 20ms before trying againFAILwas not ready to receive command!\n");
   }
-  printf("ERROR::After 4 attemps KBC was not ready to receive command!\n");
   return 1;
 }
 
