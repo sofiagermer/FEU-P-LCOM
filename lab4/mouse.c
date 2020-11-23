@@ -1,16 +1,14 @@
 #include <lcom/lcf.h>
 #include <stdint.h>
 
-#include "mouse.h"
 #include "i8042.h"
+#include "mouse.h"
 
+static int mouse_hook_id = MOUSE_IRQ;   //hook id used for the mouse
+uint8_t packet[3];                      //array of bytes, packet read from the mouse
+bool mouse_last_byte_of_packet = false; //signals that the last byte of a packet was read
 
-static int mouse_hook_id = 1; //hook id used for the mouse
-//uint8_t packet[3]; //array of bytes, packet read from the mouse
-//bool mouse_last_byte_of_packet; //signals that the last byte of a packet was read
-uint8_t mouse_byte_of_packet;
-
-int mouse_subscribe_int(uint8_t *bit_no) {
+int mouse_subscribe_int(uint16_t *bit_no) {
   *bit_no = BIT(mouse_hook_id);
   if (sys_irqsetpolicy(MOUSE_IRQ, IRQ_REENABLE | IRQ_EXCLUSIVE, &mouse_hook_id) != OK) {
     printf("mouse_subscribe_int::ERROR in setting policy!\n");
@@ -18,7 +16,6 @@ int mouse_subscribe_int(uint8_t *bit_no) {
   }
   return OK;
 }
-
 
 int mouse_unsubscribe_int() {
   if (sys_irqrmpolicy(&mouse_hook_id) != OK) {
@@ -28,31 +25,27 @@ int mouse_unsubscribe_int() {
   return OK;
 }
 
-
 void read_status_register(uint8_t *stat) {
   if (util_sys_inb(STAT_REG, stat) != OK) {
     printf("ERROR::Unable to read keyboard status register!\n");
   }
 }
 
-
 int output_full() {
-    uint8_t st;
-    read_status_register(&st);
-    if(st & KBD_OBF)
-      return OK;
-    return FAIL;
+  uint8_t st;
+  read_status_register(&st);
+  if (st & KBD_OBF)
+    return OK;
+  return FAIL;
 }
-
 
 int input_empty() {
-    uint8_t st;
-    read_status_register(&st);
-    if(st & KBD_IBF)
-      return FAIL;
-    return OK;
+  uint8_t st;
+  read_status_register(&st);
+  if (st & KBD_IBF)
+    return FAIL;
+  return OK;
 }
-
 
 int read_out_buffer(uint8_t *info) {
   if (util_sys_inb(OUT_BUFF, info) != OK) {
@@ -62,36 +55,24 @@ int read_out_buffer(uint8_t *info) {
   return OK;
 }
 
-
-/* void (mouse_ih)(void) {
+void(mouse_ih)(void) {
   uint8_t aux;
-  static uint8_t index = 1;
+  static uint8_t index = 0;
   if (mouse_last_byte_of_packet) {
-      index = 0;
-      mouse_last_byte_of_packet = false;
+    index = 0;
+    mouse_last_byte_of_packet = false;
   }
   if (output_full() == OK) {
     if (read_out_buffer(&aux) != OK) {
       printf("ERROR::Error reading the out buffer!\n");
       return;
     }
-    packet[index] = aux;
-    index++;
+    packet[index++] = aux;
     if (index == 3) {
       mouse_last_byte_of_packet = true;
     }
   }
-} */
-
-void (mouse_ih)(void) {
-  if (output_full() == OK) {
-    if (read_out_buffer(&mouse_byte_of_packet) != OK) {
-      printf("ERROR::Error reading the out buffer!\n");
-      return;
-    }
-  }
 }
-
 
 void mouse_parse_packet(uint8_t packet[], struct packet *new_packet) {
   uint8_t first_byte = packet[0];
@@ -110,25 +91,23 @@ void mouse_parse_packet(uint8_t packet[], struct packet *new_packet) {
     new_packet->delta_x = -256;
   else if (new_packet->x_ov && !(first_byte & MSB_X_DELTA))
     new_packet->delta_x = 255;
-  else 
+  else
     new_packet->delta_x *= -1;
 
   if (new_packet->y_ov && (first_byte & MSB_Y_DELTA))
     new_packet->delta_y = -256;
   else if (new_packet->y_ov && !(first_byte & MSB_Y_DELTA))
     new_packet->delta_y = 255;
-  else 
+  else
     new_packet->delta_y *= -1;
 }
 
-
 int issue_command_to_kbc(uint8_t command, uint8_t arguments) {
-  uint8_t attemps = 0; //number of attemps the function will try to issue the command
+  uint8_t attemps = 0, mouse_response; //number of attemps the function will try to issue the command
 
   //stops after 4 attemps
   while (attemps < 4) {
     attemps++;
-
     // input buffer should not be full
     if (input_empty() == OK) {
       //writtes command
@@ -144,11 +123,13 @@ int issue_command_to_kbc(uint8_t command, uint8_t arguments) {
         }
       }
       if (command == WRITE_BYTE_TO_MOUSE) {
-        if (sys_outb(CMD_ARG_REG, arguments) != OK) {
-          printf("ERROR::Unable to writes arguments to register!\n");
-          return 1;
+        mouse_response = issue_command_to_mouse(arguments);
+        if (mouse_response == ACK) {
+          return OK;
         }
-        issue_command_to_mouse(arguments);
+        else if (mouse_response == ERROR || mouse_response == FAIL) {
+          return FAIL;
+        }
       }
     }
     tickdelay(micros_to_ticks(DELAY_US));
@@ -157,11 +138,8 @@ int issue_command_to_kbc(uint8_t command, uint8_t arguments) {
   return FAIL;
 }
 
-
 int issue_command_to_mouse(uint8_t command) {
-  uint8_t response;
-  uint8_t attemps = 0; //number of attemps the function will try to issue the command
-  bool write = false;
+  uint8_t attemps = 0;
   while (attemps < 4) {
     if (input_empty() == OK) {
       if (sys_outb(IN_BUFF, command) != OK) {
@@ -169,42 +147,27 @@ int issue_command_to_mouse(uint8_t command) {
         return FAIL;
       }
       else {
-        write = true;
-        attemps = 0;
+        return mouse_read_response();
       }
+      attemps++;
+      tickdelay(micros_to_ticks(DELAY_US));
     }
-    attemps++;
-    tickdelay(micros_to_ticks(DELAY_US));
-  }
-
-  if (!write) {
-    printf("ERROR::After 4 attemps mouse was not ready to receive command!\n");
     return FAIL;
   }
-
-  //stops after 4 attemps
-  while (attemps < 4) {
-    attemps++;
-    if (input_empty() != OK) {
-      continue;
-    }
-    if (util_sys_inb(OUT_BUFF, &response) == OK) {
-      if (response == ACK) {
-        return OK;
-      }
-      else if (response == NACK) {
-        continue;
-      }
-      else if (response == ERROR) {
-        return FAIL;
-      }
-    }
-    else {
-      printf("ERROR::Unable to read mouse response!\n");
-      return FAIL;
-    }
-    tickdelay(micros_to_ticks(DELAY_US));
-  }
-  return OK;
+  return FAIL;
 }
 
+uint8_t mouse_read_response() {
+  uint8_t attemps_response = 0, response;
+  while (attemps_response < 4) {
+    attemps_response++;
+    if (output_full() != OK)
+      continue;
+
+    if (util_sys_inb(OUT_BUFF, &response) == OK)
+      return response;
+
+    tickdelay(micros_to_ticks(DELAY_US));
+  }
+  return FAIL;
+}

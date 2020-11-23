@@ -1,7 +1,7 @@
 #pragma once
 #include <lcom/lcf.h>
 
-int mouse_subscribe_int(uint8_t *bit_no);
+int mouse_subscribe_int(uint16_t *bit_no);
 
 int mouse_unsubscribe_int();
 
@@ -20,3 +20,5 @@ void mouse_parse_packet(uint8_t packet[], struct packet *new_packet);
 int issue_command_to_kbc(uint8_t command, uint8_t arguments);
 
 int issue_command_to_mouse(uint8_t command);
+
+uint8_t mouse_read_response();
