@@ -10,6 +10,7 @@
 
 extern uint8_t packet[];               //array of bytes, packet read from the mouse
 extern bool mouse_last_byte_of_packet; //signals that the last byte of a packet was read
+extern unsigned int counter;
 
 int main(int argc, char *argv[]) {
   // sets the language of LCF messages (can be either EN-US or PT-PT)
@@ -91,6 +92,76 @@ int(mouse_test_packet)(uint32_t cnt) {
 }
 
 int(mouse_test_async)(uint8_t idle_time) {
+int ipc_status, r;
+  message msg;
+  uint16_t mouse_id;
+  uint8_t timer_id;
+
+  if (issue_command_to_kbc(WRITE_BYTE_TO_MOUSE, EN_DATA_REPORT) != OK) {
+    printf("ERROR::Unable to enable data report!\n");
+    return FAIL;
+  }
+
+  if (mouse_subscribe_int(&mouse_id) != OK) {
+    printf("ERROR: Subsribe failed!\n");
+    return FAIL;
+  }
+
+  if (timer_subscribe_int(&timer_id) != OK) {
+    printf("ERROR: Subsribe failed!\n");
+    return FAIL;
+  }
+
+  while (counter != (idle_time*60)) {
+    if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
+      printf("driver_receive failed with: %d", r);
+      continue;
+    }
+    if (is_ipc_notify(ipc_status)) { // received notification
+      switch (_ENDPOINT_P(msg.m_source)) {
+        case HARDWARE:                              // hardware interrupt notification
+          if (msg.m_notify.interrupts & mouse_id) { // subscribed interrupt BIT MASK
+            mouse_ih();
+
+            if (mouse_last_byte_of_packet) {
+              struct packet new_packet;
+              mouse_parse_packet(packet, &new_packet);
+              mouse_print_packet(&new_packet);
+            }
+          }
+
+          if (msg.m_notify.interrupts & timer_id) { // subscribed interrupt BIT MASK
+            timer_int_handler();
+          }
+
+          break;
+        default:
+          break; /* no other notifications expected: do nothing */
+      }
+    }
+    else { /* received a standard message, not a notification */
+           /* no standard messages expected: do nothing */
+    }
+  }
+
+  if (timer_unsubscribe_int() != OK) {
+    printf("ERROR::Unsubsribe failed!\n");
+    return FAIL;
+  }
+
+  if (mouse_unsubscribe_int() != OK) {
+    printf("ERROR::Unsubsribe failed!\n");
+    return FAIL;
+  }
+
+  if (issue_command_to_kbc(WRITE_BYTE_TO_MOUSE, DIS_DATA_REPORT) != OK) {
+    printf("ERROR::Unable to disable data report!\n");
+    return FAIL;
+  }
+
+  return OK;
+
+
 
   return 1;
 }
