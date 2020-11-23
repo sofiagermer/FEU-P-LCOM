@@ -31,6 +31,15 @@ void read_status_register(uint8_t *stat) {
   }
 }
 
+int mouse_check_status_register() {
+  uint8_t temp=0; //hold the status
+  read_status_register(&temp);
+  if ((temp & (KBD_PAR_ERROR | KBD_TIME_ERROR)) != 0) {
+      return 1;
+    }
+  return 0;
+}
+
 int output_full() {
   uint8_t st;
   read_status_register(&st);
@@ -120,6 +129,9 @@ int issue_command_to_kbc(uint8_t command, uint8_t arguments) {
         if (sys_outb(CMD_ARG_REG, arguments) != OK) {
           printf("ERROR::Unable to writes arguments to register!\n");
           return 1;
+        }
+        else {
+          return OK;
         }
       }
       if (command == WRITE_BYTE_TO_MOUSE) {

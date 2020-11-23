@@ -44,7 +44,7 @@ int(mouse_test_packet)(uint32_t cnt) {
     printf("ERROR::Unable to enable data report!\n");
     return FAIL;
   }
-  
+
   if (mouse_subscribe_int(&mouse_id) != OK) {
     printf("ERROR: Subsribe failed!\n");
     return FAIL;
@@ -59,7 +59,7 @@ int(mouse_test_packet)(uint32_t cnt) {
         case HARDWARE:                              // hardware interrupt notification
           if (msg.m_notify.interrupts & mouse_id) { // subscribed interrupt BIT MASK
             mouse_ih();
-            
+
             if (mouse_last_byte_of_packet) {
               cnt--;
               struct packet new_packet;
@@ -81,7 +81,7 @@ int(mouse_test_packet)(uint32_t cnt) {
     printf("ERROR::Unsubsribe failed!\n");
     return FAIL;
   }
-  
+
   if (issue_command_to_kbc(WRITE_BYTE_TO_MOUSE, DIS_DATA_REPORT) != OK) {
     printf("ERROR::Unable to disable data report!\n");
     return FAIL;
@@ -91,7 +91,7 @@ int(mouse_test_packet)(uint32_t cnt) {
 }
 
 int(mouse_test_async)(uint8_t idle_time) {
-  
+
   return 1;
 }
 
@@ -102,7 +102,43 @@ int(mouse_test_gesture)(uint8_t x_len, uint8_t tolerance) {
 }
 
 int(mouse_test_remote)(uint16_t period, uint8_t cnt) {
-  /* To be completed */
-  printf("%s(%u, %u): under construction\n", __func__, period, cnt);
-  return 1;
+
+  while (cnt > 0) {
+    if (issue_command_to_kbc(WRITE_BYTE_TO_MOUSE, READ_DATA) != OK) {
+      printf("ERROR::Unable to send read data command!\n");
+      return FAIL;
+    }
+
+    if (mouse_check_status_register() == OK & output_full() == OK) {
+      mouse_ih();
+
+      if (mouse_last_byte_of_packet) {
+        cnt--;
+        struct packet new_packet;
+        mouse_parse_packet(packet, &new_packet);
+        mouse_print_packet(&new_packet);
+      }
+    }
+
+    tickdelay(micros_to_ticks(period * 1000));
+  }
+  
+  if (issue_command_to_kbc(WRITE_BYTE_TO_MOUSE, DIS_DATA_REPORT) != OK) {
+    printf("ERROR::Unable to disable data report!\n");
+    return FAIL;
+  }
+  
+  if (issue_command_to_kbc(WRITE_BYTE_TO_MOUSE, SET_STREAM_MODE) != OK) {
+    printf("ERROR::Unable to set stream mode!\n");
+    return FAIL;
+  }
+
+  uint32_t default_cmd_byte = (uint32_t) minix_get_dflt_kbc_cmd_byte();
+
+  if (issue_command_to_kbc(WRITE_CMD_BYTE, default_cmd_byte) != OK) {
+    printf("ERROR::Unable to write default command byte!\n");
+    return FAIL;
+  }
+
+  return OK;
 }

@@ -107,21 +107,6 @@ void(kbc_ih)(void) {
     bytes_read[scan_code_size++] = scan_code;
     if (scan_code != TWO_BYTES_CODE) 
       keyboard_done_getting_scancodes = true;
-    /* printf("0\n");
-    if (scan_code == TWO_BYTES_CODE) {
-        
-        bytes_read[0] = scan_code;
-    }
-    else if (keyboard_done_getting_scancodes) {
-      bytes_read[1] = scan_code;
-      scan_code_size = 2;
-      keyboard_done_getting_scancodes = false;
-    }
-    else {
-      keyboard_done_getting_scancodes = false;
-      bytes_read[0] = scan_code;
-      scan_code_size = 1;
-    } */
   }
 }
 
