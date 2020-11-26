@@ -1,5 +1,6 @@
 #pragma once
 #include <lcom/lcf.h>
+#include "state_machine.h"
 
 int mouse_subscribe_int(uint16_t *bit_no);
 

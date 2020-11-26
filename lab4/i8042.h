@@ -40,7 +40,7 @@
 #define DISABLE_KBD    0xAD /**< @brief disables keyboard interface */
 #define ENABLE_KBD     0xAE /**< @brief enables keyboard interface */
 #define DISABLE_MOUSE  0xA7 /**< @brief disables mouse interface */
-#define ENABLE_MOUSE   0xA9 /**< @brief enables mouse interface */
+#define ENABLE_MOUSE   0xA8 /**< @brief enables mouse interface */
 #define CHEK_MOUSE_INTERFACE 0xA9 /**< @brief checks mouse interface */
 #define WRITE_BYTE_TO_MOUSE  0xD4 /**< @brief writes bytes to mouse */
 
