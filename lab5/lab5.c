@@ -81,9 +81,22 @@ int(video_test_pattern)(uint16_t mode, uint8_t no_rectangles, uint32_t first, ui
 }
 
 int(video_test_xpm)(xpm_map_t xpm, uint16_t x, uint16_t y) {
-  /* To be completed */
-  printf("%s(%8p, %u, %u): under construction\n", __func__, xpm, x, y);
+  if (vggg_init(0x105) == NULL) {
+    return 1;
+  }
+  xpm_image_t img;
+  uint8_t *pixmap;
+  
+  // get the pixmap from the XPM
+  pixmap =  xpm_load(xpm, XPM_INDEXED, &img);
+  
+  // copy it to graphics memory
+  vg_draw_xpm (pixmap,  img, x, y);
 
+  if(get_esc_break_key() == OK){
+    if (vg_exit() == OK)
+		  return OK;
+  }
   return 1;
 }
 

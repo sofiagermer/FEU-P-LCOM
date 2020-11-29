@@ -81,7 +81,6 @@ int vggg_exit() {
 
 int square_draw(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint32_t color) {
     for (int l = 0; l < height; l++) {
-        printf("DRAW LINE!\n");
         if (vg_draw_hlineee(x , y+l, width, color) != OK)
             return 1;
     }
@@ -118,20 +117,13 @@ int draw_pattern(uint16_t mode, uint8_t no_rectangles, uint32_t first, uint8_t s
     uint16_t no_lines = vres / no_rectangles;
     uint16_t no_columns = hres / no_rectangles;
     uint32_t color;
-    printf("ARRIVED0\n");
 
     uint8_t r,g,b,firstR,firstG,firstB;
 
     if (mode == 0x105) { //Indexed mode
-        printf("ARRIVED1\n");
-        printf("%x\n",no_columns);
-        printf("%x\n",no_lines);
         for (int col = 0; col < no_columns; col++) {
-            printf("  a --");
             for (int row = 0; row < no_lines; row++) {
-                printf("  b --");
                 color = (first + (row * no_rectangles + col) * step) % (1 << bits_per_pixel);
-                printf("CALLED FUNC!\n");
                 if (square_draw(col*no_columns, row*no_lines,no_columns,no_lines,color) != OK) {
                     printf("ERROR!\n");
                     return 1;
@@ -157,4 +149,14 @@ int draw_pattern(uint16_t mode, uint8_t no_rectangles, uint32_t first, uint8_t s
     }
     printf("ARRIVED3\n");
     return OK;
+}
+
+void(vg_draw_xpm)(uint8_t *pixmap, xpm_image_t img, uint16_t x, uint16_t y) {
+    int width = img.width;
+    int height = img.height;
+    for(int dy = 0; dy < height; dy++){
+        for(int dx = 0; dx < width ; dx++){
+            vg_paint_pixelll(x+dx, y+dy, pixmap[dx + width*dy]);
+        }
+    }
 }

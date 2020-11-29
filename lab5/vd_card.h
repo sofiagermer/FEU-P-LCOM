@@ -17,3 +17,4 @@ int vg_paint_pixelll(uint16_t x_coord, uint16_t y_coord, uint32_t color);
 
 int draw_pattern(uint16_t mode, uint8_t no_rectangles, uint32_t first, uint8_t step);
 
+void(vg_draw_xpm)(uint8_t *pixmap, xpm_image_t img, uint16_t x, uint16_t y);
