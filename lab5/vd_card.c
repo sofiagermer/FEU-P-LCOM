@@ -111,10 +111,10 @@ int vg_paint_pixelll(uint16_t x_coord, uint16_t y_coord, uint32_t color) {
 }
 
 int draw_pattern(uint16_t mode, uint8_t no_rectangles, uint32_t first, uint8_t step) {
-    if (vres % no_rectangles != 0) {
+    /*if (vres % no_rectangles != 0) {
         vg_draw_hlineee(0,vres-1,hres,0xFF);
         return OK;
-    }
+    }*/
     uint16_t no_lines = vres / no_rectangles;
     uint16_t no_columns = hres / no_rectangles;
     uint32_t color;
