@@ -20,3 +20,5 @@ int read_out_buffer(uint8_t *info);
 void (kbc_ih)(void);
 
 int issue_command(uint8_t command, uint8_t arguments);
+
+int get_esc_break_key();

@@ -10,6 +10,7 @@ bool mouse_last_byte_of_packet = false; //signals that the last byte of a packet
 
 int mouse_subscribe_int(uint16_t *bit_no) {
   *bit_no = BIT(mouse_hook_id);
+  mouse_hook_id = MOUSE_IRQ;
   if (sys_irqsetpolicy(MOUSE_IRQ, IRQ_REENABLE | IRQ_EXCLUSIVE, &mouse_hook_id) != OK) {
     printf("mouse_subscribe_int::ERROR in setting policy!\n");
     return FAIL;
@@ -93,22 +94,16 @@ void mouse_parse_packet(uint8_t packet[], struct packet *new_packet) {
   new_packet->mb = (first_byte & MB);
   new_packet->x_ov = (first_byte & X_OVFL);
   new_packet->y_ov = (first_byte & Y_OVFL);
-  new_packet->delta_x = packet[1];
-  new_packet->delta_y = packet[2];
+  new_packet->delta_x = (uint16_t) packet[1];
+  new_packet->delta_y = (uint16_t) packet[2];
 
-  if (new_packet->x_ov && (first_byte & MSB_X_DELTA))
-    new_packet->delta_x = -256;
-  else if (new_packet->x_ov && !(first_byte & MSB_X_DELTA))
-    new_packet->delta_x = 255;
-  else
-    new_packet->delta_x *= -1;
+  if (first_byte & MSB_X_DELTA)
+    new_packet->delta_x |= 0xFF00;
+  
 
-  if (new_packet->y_ov && (first_byte & MSB_Y_DELTA))
-    new_packet->delta_y = -256;
-  else if (new_packet->y_ov && !(first_byte & MSB_Y_DELTA))
-    new_packet->delta_y = 255;
-  else
-    new_packet->delta_y *= -1;
+  if (first_byte & MSB_Y_DELTA)
+    new_packet->delta_y |= 0xFF00;
+  
 }
 
 int issue_command_to_kbc(uint8_t command, uint8_t arguments) {

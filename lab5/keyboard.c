@@ -139,4 +139,45 @@ int issue_command(uint8_t command, uint8_t arguments) {
   return 1;
 }
 
+int get_esc_break_key() {
+	int ipc_status, r;
+  uint8_t keyboard_id;
+	message msg;
+
+
+	if (kbd_subscribe_int(&keyboard_id) != OK) {
+    printf("ERROR: Subsribe failed!\n");
+    return 1;
+  }
+  printf("SUSBCRIBE!\n");
+  while (scan_code != ESC_BREAK_KEY) {
+    if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
+      printf("driver_receive failed with: %d", r);
+      continue;
+    }
+    if (is_ipc_notify(ipc_status)) { // received notification
+      switch (_ENDPOINT_P(msg.m_source)) {
+        case HARDWARE:                            // hardware interrupt notification
+          if (msg.m_notify.interrupts & keyboard_id) { // subscribed interrupt BIT MASK
+            printf("RECEIVED!\n");
+            read_out_buffer(&scan_code);
+          }
+          break;
+        default:
+          break; /* no other notifications expected: do nothing */
+      }
+    }
+    else { /* received a standard message, not a notification */
+           /* no standard messages expected: do nothing */
+    }
+  }
+  printf("END!\n");
+	if (kbd_unsubscribe_int() != OK) {
+    printf("ERROR: Unsubsribe failed!\n");
+    return 1;
+  }
+  printf("UNSUSCRIBE!\n");
+	return OK;
+}
+
 
