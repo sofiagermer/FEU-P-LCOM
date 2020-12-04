@@ -115,7 +115,6 @@ int issue_command_to_kbc(uint8_t command, uint8_t arguments) {
     if (input_empty() == OK) {
       //writtes command
       if (sys_outb(CMD_REG, command) == OK) {
-        printf("AA\n");
         //in case the command is WriteCommandByte it needs the new command (arguments)
         if (command == WRITE_CMD_BYTE) {
           if (sys_outb(CMD_ARG_REG, arguments) == OK) {
@@ -123,7 +122,6 @@ int issue_command_to_kbc(uint8_t command, uint8_t arguments) {
           }
         }
         else {
-          printf("A\n");
           return OK;
         }
       }
@@ -139,21 +137,18 @@ int issue_command_to_mouse(uint8_t command) {
   while (true) {
     if(issue_command_to_kbc(WRITE_BYTE_TO_MOUSE, 0) != OK) 
       return 1;
-    printf("1\n");
     if (input_empty() == OK)
       if(sys_outb(IN_BUFF,command) != OK) 
         return 1;
     uint8_t response;
-    printf("2\n");
-    if (util_sys_inb(OUT_BUFF, &response) != OK)
-      return 1;
-    printf("3\n");
-    if (response == ACK)
-      return OK;
-    printf("4\n");
-    if (response == ERROR)
-      return 1;
-    printf("5\n");
+    if (output_full() == OK) {
+      if (util_sys_inb(OUT_BUFF, &response) != OK)
+        return 1;
+      if (response == ACK)
+        return OK;
+      if (response == ERROR)
+        return 1;
+    }
     tickdelay(micros_to_ticks(DELAY_US));
   }
 }

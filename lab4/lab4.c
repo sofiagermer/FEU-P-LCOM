@@ -41,11 +41,11 @@ int(mouse_test_packet)(uint32_t cnt) {
   message msg;
   uint16_t mouse_id;
 
-  /*if (issue_command_to_mouse(EN_DATA_REPORT) != OK) {
+  if (issue_command_to_mouse(EN_DATA_REPORT) != OK) {
     printf("ERROR::Unable to enable data report!\n");
     return FAIL;
-  }*/
-  mouse_enable_data_reporting();
+  }
+  //mouse_enable_data_reporting();
 
   if (mouse_subscribe_int(&mouse_id) != OK) {
     printf("ERROR: Subsribe failed!\n");
@@ -53,7 +53,6 @@ int(mouse_test_packet)(uint32_t cnt) {
   }
 
   while (cnt > 0) {
-    printf("ARRIVED1!\n");
     if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
       printf("driver_receive failed with: %d", r);
       continue;
@@ -62,14 +61,13 @@ int(mouse_test_packet)(uint32_t cnt) {
       switch (_ENDPOINT_P(msg.m_source)) {
         case HARDWARE:                              // hardware interrupt notification
           if (msg.m_notify.interrupts & mouse_id) { // subscribed interrupt BIT MASK
-            printf("ARRIVED2!\n");
             mouse_ih();
 
             if (mouse_last_byte_of_packet) {
-              printf("ARRIVED3!\n");
               cnt--;
               struct packet new_packet;
               mouse_parse_packet(packet, &new_packet);
+              printf("A\n");
               mouse_print_packet(&new_packet);
             }
           }
