@@ -136,7 +136,7 @@ int issue_command(uint8_t command, uint8_t arguments) {
     tickdelay(micros_to_ticks(DELAY_US));
     //wait 20ms before trying againFAILwas not ready to receive command!\n");
   }
-  return 1;
+  return 0;
 }
 
 

@@ -10,7 +10,6 @@ bool mouse_last_byte_of_packet = false; //signals that the last byte of a packet
 
 int mouse_subscribe_int(uint16_t *bit_no) {
   *bit_no = BIT(mouse_hook_id);
-  mouse_hook_id = MOUSE_IRQ;
   if (sys_irqsetpolicy(MOUSE_IRQ, IRQ_REENABLE | IRQ_EXCLUSIVE, &mouse_hook_id) != OK) {
     printf("mouse_subscribe_int::ERROR in setting policy!\n");
     return FAIL;
@@ -44,7 +43,7 @@ int mouse_check_status_register() {
 int output_full() {
   uint8_t st;
   read_status_register(&st);
-  if (st & KBD_OBF)
+  if (st & KBD_OBF && mouse_check_status_register())
     return OK;
   return FAIL;
 }
@@ -52,7 +51,7 @@ int output_full() {
 int input_empty() {
   uint8_t st;
   read_status_register(&st);
-  if (st & KBD_IBF)
+  if (st & KBD_IBF && mouse_check_status_register())
     return FAIL;
   return OK;
 }
@@ -107,7 +106,7 @@ void mouse_parse_packet(uint8_t packet[], struct packet *new_packet) {
 }
 
 int issue_command_to_kbc(uint8_t command, uint8_t arguments) {
-  uint8_t attemps = 0, mouse_response; //number of attemps the function will try to issue the command
+  uint8_t attemps = 0; //number of attemps the function will try to issue the command
 
   //stops after 4 attemps
   while (attemps < 4) {
@@ -115,54 +114,57 @@ int issue_command_to_kbc(uint8_t command, uint8_t arguments) {
     // input buffer should not be full
     if (input_empty() == OK) {
       //writtes command
-      if (sys_outb(CMD_REG, command) != OK) {
-        printf("ERROR::Unable to write command to register!\n");
-        return 1;
-      }
-      //in case the command is WriteCommandByte it needs the new command (arguments)
-      if (command == WRITE_CMD_BYTE) {
-        if (sys_outb(CMD_ARG_REG, arguments) != OK) {
-          printf("ERROR::Unable to writes arguments to register!\n");
-          return 1;
+      if (sys_outb(CMD_REG, command) == OK) {
+        printf("AA\n");
+        //in case the command is WriteCommandByte it needs the new command (arguments)
+        if (command == WRITE_CMD_BYTE) {
+          if (sys_outb(CMD_ARG_REG, arguments) == OK) {
+            return OK;
+          }
         }
         else {
+          printf("A\n");
           return OK;
-        }
-      }
-      if (command == WRITE_BYTE_TO_MOUSE) {
-        mouse_response = issue_command_to_mouse(arguments);
-        if (mouse_response == ACK) {
-          return OK;
-        }
-        else if (mouse_response == ERROR || mouse_response == FAIL) {
-          return FAIL;
         }
       }
     }
+
     tickdelay(micros_to_ticks(DELAY_US));
-    //wait 20ms before trying againFAILwas not ready to receive command!\n");
   }
-  return FAIL;
+  return 0;
 }
 
+
 int issue_command_to_mouse(uint8_t command) {
-  uint8_t attemps = 0;
-  while (attemps < 4) {
-    if (input_empty() == OK) {
-      if (sys_outb(IN_BUFF, command) != OK) {
-        printf("ERROR::Unable to write command to mouse!\n");
-        return FAIL;
-      }
-      else {
-        return mouse_read_response();
-      }
-      attemps++;
-      tickdelay(micros_to_ticks(DELAY_US));
-    }
-    return FAIL;
+  while (true) {
+    if(issue_command_to_kbc(WRITE_BYTE_TO_MOUSE, 0) != OK) 
+      return 1;
+    printf("1\n");
+    if (input_empty() == OK)
+      if(sys_outb(IN_BUFF,command) != OK) 
+        return 1;
+    uint8_t response;
+    printf("2\n");
+    if (util_sys_inb(OUT_BUFF, &response) != OK)
+      return 1;
+    printf("3\n");
+    if (response == ACK)
+      return OK;
+    printf("4\n");
+    if (response == ERROR)
+      return 1;
+    printf("5\n");
+    tickdelay(micros_to_ticks(DELAY_US));
   }
-  return FAIL;
 }
+
+
+
+
+
+
+
+
 
 uint8_t mouse_read_response() {
   uint8_t attemps_response = 0, response;

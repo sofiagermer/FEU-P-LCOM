@@ -41,13 +41,11 @@ int(mouse_test_packet)(uint32_t cnt) {
   message msg;
   uint16_t mouse_id;
 
-  if (mouse_enable_data_reporting() != OK) 
-    printf("WARNING!\n");
-  
-  /*if (issue_command_to_kbc(WRITE_BYTE_TO_MOUSE, EN_DATA_REPORT) != OK) {
+  /*if (issue_command_to_mouse(EN_DATA_REPORT) != OK) {
     printf("ERROR::Unable to enable data report!\n");
     return FAIL;
   }*/
+  mouse_enable_data_reporting();
 
   if (mouse_subscribe_int(&mouse_id) != OK) {
     printf("ERROR: Subsribe failed!\n");
@@ -55,6 +53,7 @@ int(mouse_test_packet)(uint32_t cnt) {
   }
 
   while (cnt > 0) {
+    printf("ARRIVED1!\n");
     if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
       printf("driver_receive failed with: %d", r);
       continue;
@@ -63,9 +62,11 @@ int(mouse_test_packet)(uint32_t cnt) {
       switch (_ENDPOINT_P(msg.m_source)) {
         case HARDWARE:                              // hardware interrupt notification
           if (msg.m_notify.interrupts & mouse_id) { // subscribed interrupt BIT MASK
+            printf("ARRIVED2!\n");
             mouse_ih();
 
             if (mouse_last_byte_of_packet) {
+              printf("ARRIVED3!\n");
               cnt--;
               struct packet new_packet;
               mouse_parse_packet(packet, &new_packet);
@@ -87,8 +88,8 @@ int(mouse_test_packet)(uint32_t cnt) {
     return FAIL;
   }
 
-  if (issue_command_to_kbc(WRITE_BYTE_TO_MOUSE, DIS_DATA_REPORT) != OK) {
-    printf("ERROR::Unable to disable data report!\n");
+  if (issue_command_to_mouse(DIS_DATA_REPORT) != OK) {
+    printf("ERROR::Unable to enable data report!\n");
     return FAIL;
   }
 
@@ -101,7 +102,7 @@ int ipc_status, r;
   uint16_t mouse_id;
   uint8_t timer_id;
 
-  if (issue_command_to_kbc(WRITE_BYTE_TO_MOUSE, EN_DATA_REPORT) != OK) {
+  if (issue_command_to_mouse(EN_DATA_REPORT) != OK) {
     printf("ERROR::Unable to enable data report!\n");
     return FAIL;
   }
@@ -159,7 +160,7 @@ int ipc_status, r;
     return FAIL;
   }
 
-  if (issue_command_to_kbc(WRITE_BYTE_TO_MOUSE, DIS_DATA_REPORT) != OK) {
+  if (issue_command_to_mouse(DIS_DATA_REPORT) != OK) {
     printf("ERROR::Unable to disable data report!\n");
     return FAIL;
   }
@@ -174,8 +175,8 @@ int(mouse_test_gesture)(uint8_t x_len, uint8_t tolerance) {
   bool gesture_complete = false;
   mouse_last_byte_of_packet = false;
 
-  if (mouse_enable_data_reporting() != OK) 
-    printf("WARNING!\n");
+  if (issue_command_to_mouse(EN_DATA_REPORT) != OK) 
+    return FAIL;
 
   if (mouse_subscribe_int(&mouse_id) != OK) {
     printf("ERROR: Subsribe failed!\n");
@@ -213,7 +214,7 @@ int(mouse_test_gesture)(uint8_t x_len, uint8_t tolerance) {
     printf("ERROR::Unsubsribe failed!\n");
     return FAIL;
   }
-  printf("REACHED!\n");
+
   if (issue_command_to_kbc(WRITE_BYTE_TO_MOUSE, DIS_DATA_REPORT) != OK) {
     printf("ERROR::Unable to disable data report!\n");
     return FAIL;
