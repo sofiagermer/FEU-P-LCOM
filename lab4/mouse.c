@@ -36,14 +36,14 @@ int mouse_check_status_register() {
   read_status_register(&temp);
   if ((temp & (KBD_PAR_ERROR | KBD_TIME_ERROR)) != 0) {
       return 1;
-    }
+  }
   return 0;
 }
 
 int output_full() {
   uint8_t st;
   read_status_register(&st);
-  if (st & KBD_OBF && mouse_check_status_register())
+  if (st & KBD_OBF && !mouse_check_status_register())
     return OK;
   return FAIL;
 }
@@ -51,7 +51,7 @@ int output_full() {
 int input_empty() {
   uint8_t st;
   read_status_register(&st);
-  if (st & KBD_IBF && mouse_check_status_register())
+  if (st & KBD_IBF && !mouse_check_status_register())
     return FAIL;
   return OK;
 }
@@ -141,14 +141,14 @@ int issue_command_to_mouse(uint8_t command) {
       if(sys_outb(IN_BUFF,command) != OK) 
         return 1;
     uint8_t response;
-    if (output_full() == OK) {
+    //if (output_full() == OK) {
       if (util_sys_inb(OUT_BUFF, &response) != OK)
         return 1;
       if (response == ACK)
         return OK;
       if (response == ERROR)
         return 1;
-    }
+    //}
     tickdelay(micros_to_ticks(DELAY_US));
   }
 }
@@ -158,20 +158,113 @@ int issue_command_to_mouse(uint8_t command) {
 
 
 
+int issue_cmd_to_kbc(uint8_t command, uint8_t argument) {
+  uint8_t mouse_response, tries=4;
+  
+  while (tries > 0) {
+    if (kbc_write_cmd(command) != OK) {
+      printf("ERROR::writing the command!\n");
+      return 1;
+    }
 
+    if (command == WRITE_CMD_BYTE) {
+      if (kbc_write_argument(argument) != OK)
+        printf("ERROR::writing the new command byte!\n");
+        return 1;
+    }
 
+    if (command == WRITE_BYTE_TO_MOUSE) {
+      if (mouse_write_command(argument,&mouse_response) != OK) 
+        return 1;
+      
+      if (mouse_response == ACK)
+        return OK;
+      else if (mouse_response == ERROR)
+        return 1;
+    }
 
-uint8_t mouse_read_response() {
-  uint8_t attemps_response = 0, response;
-  while (attemps_response < 4) {
-    attemps_response++;
-    if (output_full() != OK)
-      continue;
-
-    if (util_sys_inb(OUT_BUFF, &response) == OK)
-      return response;
-
+    tries--;
     tickdelay(micros_to_ticks(DELAY_US));
   }
-  return FAIL;
+
+  printf("After 4 tries, kbc was not ready to receive the command\n");
+  return 1;
+}
+
+
+int kbc_write_cmd(uint8_t command) {
+  uint8_t status, tries=4;
+  if (util_sys_inb(STAT_REG,&status) != OK) {
+    printf("ERROR::Unable to read the status register!\n");
+    return 1;
+  }
+
+  while (tries > 0) {
+    if ((status & KBD_IBF) == 0) {
+
+      if (sys_outb(CMD_REG, command) != OK) 
+        return 1;
+
+      return OK;
+    }
+
+    tries--;
+    tickdelay(micros_to_ticks(DELAY_US));
+  }
+
+  printf("After 4 tries, kbc was not ready to receive the command\n");
+  return 1;
+}
+
+int kbc_write_argument(uint8_t argument) {
+  uint8_t status, tries = 4;
+  if (util_sys_inb(STAT_REG,&status) != OK ) {
+    printf("ERROR::Unable to read the status register!\n");
+    return 1;
+  }
+
+  while (tries > 0) {
+    if((status & KBD_IBF) == 0) {
+
+      if (sys_outb(CMD_ARG_REG,argument) != OK) {
+        return 1;
+      }
+
+      return OK;
+    }
+
+    tries--;
+    tickdelay(micros_to_ticks(DELAY_US));
+  }
+
+  printf("After 4 tries, kbc was not ready to receive the argument\n");
+  return 1;
+}
+
+int mouse_write_command(uint8_t command, uint8_t*response) {
+  uint8_t status, tries=4;
+  if (util_sys_inb(STAT_REG,&status) != OK) {
+    printf("ERROR::Unable to read the status register!\n");
+    return 1;
+  }
+  while (tries > 0) {
+    if ((status & KBD_IBF) == 0) {
+      if (sys_outb(CMD_ARG_REG,command) != OK) {
+        return 1;
+      }
+      tickdelay(micros_to_ticks(DELAY_US));
+      
+      if (util_sys_inb(OUT_BUFF,response) != OK) {
+        return 1;
+      }
+      printf("OK!\n");
+      return OK;
+    }
+
+    tries--;
+    tickdelay(micros_to_ticks(DELAY_US));
+  }
+
+  printf("After 4 tries, mouse was not ready\n");
+  return 1;
 }

@@ -40,8 +40,8 @@ int(mouse_test_packet)(uint32_t cnt) {
   int ipc_status, r;
   message msg;
   uint16_t mouse_id;
-
-  if (issue_command_to_mouse(EN_DATA_REPORT) != OK) {
+  
+  if (issue_cmd_to_kbc(WRITE_BYTE_TO_MOUSE,EN_DATA_REPORT) != OK) {
     printf("ERROR::Unable to enable data report!\n");
     return FAIL;
   }
@@ -62,12 +62,10 @@ int(mouse_test_packet)(uint32_t cnt) {
         case HARDWARE:                              // hardware interrupt notification
           if (msg.m_notify.interrupts & mouse_id) { // subscribed interrupt BIT MASK
             mouse_ih();
-
             if (mouse_last_byte_of_packet) {
               cnt--;
               struct packet new_packet;
               mouse_parse_packet(packet, &new_packet);
-              printf("A\n");
               mouse_print_packet(&new_packet);
             }
           }
@@ -86,7 +84,7 @@ int(mouse_test_packet)(uint32_t cnt) {
     return FAIL;
   }
 
-  if (issue_command_to_mouse(DIS_DATA_REPORT) != OK) {
+  if (issue_cmd_to_kbc(WRITE_BYTE_TO_MOUSE,DIS_DATA_REPORT) != OK) {
     printf("ERROR::Unable to enable data report!\n");
     return FAIL;
   }

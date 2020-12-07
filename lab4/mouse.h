@@ -25,3 +25,10 @@ int issue_command_to_kbc(uint8_t command, uint8_t arguments);
 int issue_command_to_mouse(uint8_t command);
 
 uint8_t mouse_read_response();
+
+
+
+int issue_cmd_to_kbc(uint8_t command, uint8_t argument);
+int kbc_write_cmd(uint8_t command);
+int kbc_write_argument(uint8_t argument);
+int mouse_write_command(uint8_t command, uint8_t*response);

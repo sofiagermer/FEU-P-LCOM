@@ -55,10 +55,42 @@ int(video_test_rectangle)(uint16_t mode, uint16_t x, uint16_t y, uint16_t width,
   if (vggg_init(mode) == NULL)
 		return 1;
 
-	if (square_draw(x, y, width,height, color) != OK) {
+  /*int base = 100;
+  int len = base;
+  uint16_t x_atual;
+  uint16_t y_atual = y;
+  int line_num = 0; 
+
+  while (line_num < y) {
+    line_num++;
+    x_atual = x+line_num;
+    len = base - 2*line_num;
+    for (int i = 0; i < len; i++) {
+      vg_paint_pixelll(x_atual+i,y_atual,color);
+    }
+    y_atual++;
+  }*/
+
+  int h = 100;
+  int len = 1;
+  uint16_t x_atual;
+  uint16_t y_atual = y;
+  int line_num = 0; 
+
+  while (line_num < h) {
+    line_num++;
+    x_atual = x-line_num;
+    len = 1 + 2*line_num;
+    for (int i = 0; i < len; i++) {
+      vg_paint_pixelll(x_atual+i,y_atual,color);
+    }
+    y_atual++;
+  }
+
+	/*if (square_draw(x, y, width,height, color) != OK) {
     printf("ERROR drwaing the square!\n");
     return 1;
-  }
+  }*/
 	get_esc_break_key();
 
 	if (vg_exit() != OK)
