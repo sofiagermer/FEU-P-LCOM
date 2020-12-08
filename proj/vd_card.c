@@ -148,8 +148,11 @@ int vg_paint_pixelll(uint16_t x_coord, uint16_t y_coord, uint32_t color) {
     if (bits_per_pixel == 8) { //Indexed
         memset(video_mem + hres*y_coord + x_coord, color, 1);
     }
+    else if(bits_per_pixel == 15){
+        memcpy(video_mem + hres*y_coord*2 + vres*x_coord*2, &color, 2);
+    }
     else {
-        memcpy(video_mem + hres*y_coord*(bits_per_pixel/8) + vres*x_coord*(bits_per_pixel/8), &color, (bits_per_pixel/8));
+        memcpy(video_mem + hres*y_coord*(bits_per_pixel/8) + x_coord*(bits_per_pixel/8), &color, (bits_per_pixel/8));
     }
     return OK;
 }
@@ -227,12 +230,13 @@ int draw_pattern(uint16_t mode, uint8_t no_rectangles, uint32_t first, uint8_t s
   return OK;
 }
 
-void(vg_draw_xpm)(uint8_t *pixmap, xpm_image_t img, uint16_t x, uint16_t y) {
+void(vg_draw_xpm)(uint32_t *pixmap, xpm_image_t img, uint16_t x, uint16_t y) {
     int width = img.width;
     int height = img.height;
+
     for(int dy = 0; dy < height; dy++){
         for(int dx = 0; dx < width ; dx++){
-            vg_paint_pixelll(x+dx, y+dy, pixmap[dx + width*dy]);
+            vg_paint_pixelll(x+dx, y+dy, pixmap[(dx + width*dy)]);
         }
     }
 }
