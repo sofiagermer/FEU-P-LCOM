@@ -22,8 +22,4 @@ int vg_paint_pixel(uint16_t x_coord, uint16_t y_coord, uint32_t color);
 
 void(vg_draw_xpm)(uint32_t *pixmap, xpm_image_t img, uint16_t x, uint16_t y);
 
-<<<<<<< HEAD:proj/src/vd_card.h
 #endif /* _VD_CARD_H_ */
-=======
-void(vg_draw_xpm)(uint32_t *pixmap, xpm_image_t img, uint16_t x, uint16_t y);
->>>>>>> 2ae7ceabe6083879afa7c25a52912788cfaa793f:proj/vd_card.h

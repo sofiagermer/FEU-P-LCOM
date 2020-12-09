@@ -134,38 +134,8 @@ int vg_paint_pixel(uint16_t x_coord, uint16_t y_coord, uint32_t color) {
     if (bits_per_pixel == 8) { 
         memset(video_mem + hres*y_coord + x_coord, color, 1);
     }
-<<<<<<< HEAD:proj/src/vd_card.c
     else if (bits_per_pixel == 15) {
         memcpy(video_mem + hres*y_coord*2 + x_coord*2, &color, 2);
-=======
-    else if(bits_per_pixel == 15){
-        memcpy(video_mem + hres*y_coord*2 + vres*x_coord*2, &color, 2);
-    }
-    else {
-        memcpy(video_mem + hres*y_coord*(bits_per_pixel/8) + x_coord*(bits_per_pixel/8), &color, (bits_per_pixel/8));
-    }
-    return OK;
-}
-
-int draw_pattern(uint16_t mode, uint8_t no_rectangles, uint32_t first, uint8_t step) {
-    /*uint16_t no_lines = vres / no_rectangles;
-    uint16_t no_columns = hres / no_rectangles;
-    uint32_t color;
-
-    uint8_t r,g,b,firstR,firstG,firstB;
-
-    if (mode == 0x105) { //Indexed mode
-        for (int col = 0; col < no_columns; col++) {
-            for (int row = 0; row < no_lines; row++) {
-                color = (first + (row * no_rectangles + col) * step) % (1 << bits_per_pixel);
-                if (square_draw(col*no_columns, row*no_lines,no_columns,no_lines,color) != OK) {
-                    printf("ERROR!\n");
-                    return 1;
-                }
-                    
-            }
-        }
->>>>>>> 2ae7ceabe6083879afa7c25a52912788cfaa793f:proj/vd_card.c
     }
     else {
         memcpy(video_mem + hres*y_coord*(bits_per_pixel/8) + x_coord*(bits_per_pixel/8), &color, (bits_per_pixel/8));
@@ -179,11 +149,7 @@ void(vg_draw_xpm)(uint32_t *pixmap, xpm_image_t img, uint16_t x, uint16_t y) {
 
     for(int dy = 0; dy < height; dy++){
         for(int dx = 0; dx < width ; dx++){
-<<<<<<< HEAD:proj/src/vd_card.c
             vg_paint_pixel(x+dx, y+dy, pixmap[(dx + width*dy)]);
-=======
-            vg_paint_pixelll(x+dx, y+dy, pixmap[(dx + width*dy)]);
->>>>>>> 2ae7ceabe6083879afa7c25a52912788cfaa793f:proj/vd_card.c
         }
     }
 }
