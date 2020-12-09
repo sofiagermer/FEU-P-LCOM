@@ -149,6 +149,7 @@ void(vg_draw_xpm)(uint32_t *pixmap, xpm_image_t img, uint16_t x, uint16_t y) {
 
     for(int dy = 0; dy < height; dy++){
         for(int dx = 0; dx < width ; dx++){
+            if (pixmap[(dx + width*dy)] != xpm_transparency_color(XPM_8_8_8_8))
             vg_paint_pixel(x+dx, y+dy, pixmap[(dx + width*dy)]);
         }
     }
