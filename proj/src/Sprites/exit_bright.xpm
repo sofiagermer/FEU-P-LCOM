@@ -1,5 +1,5 @@
 /* XPM */
-static char * exit_bright_xpm[] = {
+static xpm_row_t const exit_bright_xpm[] = {
 "190 33 18 1",
 " 	c None",
 ".	c #E7A795",
