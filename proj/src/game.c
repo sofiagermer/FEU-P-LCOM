@@ -18,7 +18,8 @@ WhacAMole* load_game() {
     //load background
     xpm_load(background_xpm, XPM_8_8_8_8, &new_game->background);
     //load all moles
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 6; i++) {                
+        timer_counter = 0;
         Mole* new_mole = createMole(i+1);
         new_game->moles[i] = new_mole;
     }
@@ -44,7 +45,7 @@ int game_main_loop(WhacAMole* new_game) {
     if (kbd_subscribe_int(&new_game->keyboard_irq) != OK) {return 1;}
     if (timer_subscribe_int(&new_game->timer_irq) != OK)  {return 1;}
 
-    while (new_game->game_state != EXIT || teste < 60) {
+    while (new_game->game_state != EXIT) {
         if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
             printf("driver_receive failed with: %d", r);
             continue;
@@ -54,16 +55,24 @@ int game_main_loop(WhacAMole* new_game) {
             switch (_ENDPOINT_P(msg.m_source)) {
             case HARDWARE: // hardware interrupt notification
                 if (msg.m_notify.interrupts & new_game->keyboard_irq) {
-                    //kbc_ih();
-                    return 1;
+                    kbc_ih();
+                    interrupt_handler(KEYBOARD, new_game);
+                    if(keyboard_done_getting_scancodes && scan_code == ESC_BREAK ){
+                        new_game->game_state = EXIT;
+                    }
                 }
 
                 if (msg.m_notify.interrupts & new_game->timer_irq) {
                     timer_int_handler();
-                    interrupt_handler(TIMER, new_game);
-                    for (int i = 0; i < 6; i++) {
-                        draw_mole(new_game->moles[i]);
-                    }
+                    if (timer_counter % 10 == 0) {
+                        printf("init\n");
+                        interrupt_handler(TIMER, new_game);
+                        vg_draw_xpm(pixmap, new_game->background, 0, 0);
+                        for (int i = 0; i < 6; i++) {
+                            draw_mole(new_game->moles[i]);
+                        }
+                        printf("end\n");
+                    }    
                 }
 
                 break;
@@ -124,18 +133,17 @@ void interrupt_handler(device device, WhacAMole* game) {
                 }
             }
 
-                    new_game->moles[0]->position = UP_4;
             if(down) {
-                if (game->moles[mole_up]->position == DOWN_4) {
-                    game->moles[mole_up]->position = HIDED;
+                if (game->moles[mole_down]->position == DOWN_1) {
+                    game->moles[mole_down]->position = HIDED;
                 }
                 else 
-                    game->moles[mole_up]->position++;
+                    game->moles[mole_down]->position++;
             }
 
             //move up a random mole
             if(!down && !up) {
-                int r = 1 + (rand() % 7);
+                int r = rand() % 6;
                 game->moles[r]->position = UP_1;
             }
 

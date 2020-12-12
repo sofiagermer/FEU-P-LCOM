@@ -4,6 +4,8 @@
 #include "mole.h"
 #include "vd_card.h"
 
+static char kbd_keys [6] = {KBD_KEY_0, KBD_KEY_1, KBD_KEY_2, KBD_KEY_3, KBD_KEY_4, KBD_KEY_5}
+
 Mole *createMole(int mole_index) {
     //Allocating memory
     Mole *mole = (Mole *)malloc(sizeof(Mole));

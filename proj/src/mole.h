@@ -21,7 +21,14 @@
 #define MOLE_WIDHT   200
 #define STEP_FROM_X  180
 #define STEP_FROM_Y  180
-#define MOLE_UP_TIME 300
+#define MOLE_UP_TIME 5
+
+#define KBD_KEY_0 'A'
+#define KBD_KEY_1 'S'
+#define KBD_KEY_2 'D'
+#define KBD_KEY_3 'J'
+#define KBD_KEY_4 'K'
+#define KBD_KEY_5 'L'
 
 typedef enum {HIDED, UP_1, UP_2, UP_3, UP_4,DOWN_4, DOWN_3, DOWN_2, DOWN_1} Position;
 
