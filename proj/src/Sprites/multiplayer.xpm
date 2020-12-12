@@ -1,5 +1,5 @@
 /* XPM */
-static char * multiplayer_xpm[] = {
+static xpm_row_t const multiplayer_xpm[] = {
 "190 33 20 1",
 " 	c None",
 ".	c #31D3E6",
