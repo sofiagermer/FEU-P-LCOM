@@ -1,5 +1,5 @@
 /* XPM */
-static char * logo_xpm[] = {
+static xpm_row_t const logo_xpm[] = {
 "370 208 1882 2",
 "  	c None",
 ". 	c #9BE651",
