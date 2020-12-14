@@ -16,21 +16,25 @@ typedef enum_click{
     no_click = -1
 }click_t;
 
-typedef struct button{
+typedef struct {
     xpm_image_t normal;
     xpm_image_t bright;
     bool bright;
     uint16_t xi;
     uint16_t yi;
-    //não tenho a certeza se preciso da posição do canto inferior esquerdo
     uint16_t xf;
     uint16_t yf;
-} button_t;
+} Button;
 
-typedef struct menu {
-    xpm_image_t logo;           
+typedef struct {
+    xpm_image_t background;
+    xpm_image_t logo;   
+    xpm_image_t cursor;        
     button_t *single_player_button;  
     button_t *multi_player_button; 
     button_t *exit_button;                     
-} menu_t;
+} Menu;
 
+Menu *create_menu();
+
+void draw_menu(menu_t *menu);
