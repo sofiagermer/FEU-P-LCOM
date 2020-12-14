@@ -26,10 +26,15 @@ typedef struct {
     uint16_t yf;
 } Button;
 
+typedef struct{
+    xpm_image_t cursor_xpm;
+    uint16_t x;
+    uint16_t y;
+} Cursor;
+
 typedef struct {
     xpm_image_t background;
-    xpm_image_t logo;   
-    xpm_image_t cursor;        
+    xpm_image_t logo;         
     button_t *single_player_button;  
     button_t *multi_player_button; 
     button_t *exit_button;                     
