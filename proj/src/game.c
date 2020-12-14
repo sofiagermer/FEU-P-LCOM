@@ -5,6 +5,7 @@
 #include "keyboard.h"
 #include "vd_card.h"
 #include "kbd_manager.h"
+#include "menu.h"
 
 //TIMER
 extern unsigned int timer_counter;
@@ -27,7 +28,8 @@ WhacAMole *load_game()
         Mole *new_mole = createMole(i + 1);
         new_game->moles[i] = new_mole;
     }
-    new_game->game_state = GAME; //ONLY FOR TESTING
+    Menu* menu = create_menu();
+    new_game->game_state = MAIN_MENU; //ONLY FOR TESTING
     return new_game;
 }
 
@@ -124,7 +126,26 @@ int game_main_loop(WhacAMole *new_game)
     return OK;
 }
 
-void interrupt_handler(device device, WhacAMole *game)
+void GeneralInterrupt(Device device, WhacAMole* new_game) {
+  switch (new_game ->gameState){
+    case MAINMENU:
+      MainMenuInterruptHandler(device, *new_game);
+      break;
+    case SINGLEPLAYER:
+      SinglePlayerInterruptHandler(device, *new_game);
+      break;
+    case MULTIPLAYER:
+      MultiPlayerInterrupthandler(device, *new_game);
+      break;
+    case EXIT:
+      break;
+  }
+}
+
+void Main_Menu_interrupt_handler(device device, WhacAMole* game){
+    
+}
+void Single_Player_interrupt_handler(device device, WhacAMole *new_game)
 {
     srand(time(NULL)); // Initialization, should only be called once.
 
