@@ -15,82 +15,82 @@ char kbd_manager(uint8_t scanCode) {
       letter = '2';
       break;
     case A_BREAK:
-      letter = 'a';
+      letter = 'A';
       break;
     case B_BREAK:
-      letter = 'b';
+      letter = 'B';
       break;
     case C_BREAK:
-      letter = 'c';
+      letter = 'C';
       break;
     case D_BREAK:
-      letter = 'd';
+      letter = 'D';
       break;
     case E_BREAK:
-      letter = 'e';
+      letter = 'E';
       break;
     case F_BREAK:
-      letter = 'f';
+      letter = 'F';
       break;
     case G_BREAK:
-      letter = 'g';
+      letter = 'G';
       break;
     case H_BREAK:
-      letter = 'h';
+      letter = 'H';
       break;
     case I_BREAK:
-      letter = 'i';
+      letter = 'I';
       break;
     case J_BREAK:
-      letter = 'j';
+      letter = 'J';
       break;
     case K_BREAK:
-      letter = 'k';
+      letter = 'K';
       break;
     case L_BREAK:
-      letter = 'l';
+      letter = 'L';
       break;
     case M_BREAK:
-      letter = 'm';
+      letter = 'M';
       break;
     case N_BREAK:
-      letter = 'n';
+      letter = 'N';
       break;
     case O_BREAK:
-      letter = 'o';
+      letter = 'O';
       break;
     case P_BREAK:
-      letter = 'p';
+      letter = 'P';
       break;
     case Q_BREAK:
-      letter = 'q';
+      letter = 'Q';
       break;
     case R_BREAK:
-      letter = 'r';
+      letter = 'R';
       break;
     case S_BREAK:
-      letter = 's';
+      letter = 'S';
       break;
     case T_BREAK:
-      letter = 't';
+      letter = 'T';
       break;
     case U_BREAK:
-      letter = 'u';
+      letter = 'U';
       break;
     case V_BREAK:
-      letter = 'v';
+      letter = 'V';
       break;
     case W_BREAK:
-      letter = 'w';
+      letter = 'W';
       break;
     case X_BREAK:
-      letter = 'x';
+      letter = 'X';
       break;
     case Y_BREAK:
-      letter = 'y';
+      letter = 'Y';
       break;
     case Z_BREAK:
-      letter = 'z';
+      letter = 'Z';
       break;
     default:
       letter = '.';

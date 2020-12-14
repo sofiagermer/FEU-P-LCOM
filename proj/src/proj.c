@@ -7,9 +7,7 @@
 #include <stdint.h>
 
 #include "vd_card.h"
-
 #include "game.h"
-
 
 // Any header files included below this line should have been created by you
 
@@ -44,11 +42,12 @@ extern bool keyboard_done_getting_scancodes;
 int(proj_main_loop)(int argc, char *argv[]) {
 
   if (vggg_init(0x115) == NULL)
-    return FAIL;
+    return 1;
   
 
   WhacAMole* new_game = load_game();
 
+  
   game_main_loop(new_game);
 
   vg_exit();

@@ -5,6 +5,7 @@
 
 
 static char *video_mem; /* virtual address to which VRAM is mapped */
+static char *double_buffer;
 
 static uint16_t hres; /* XResolution */
 static uint16_t vres; /* YResolution */
@@ -85,7 +86,7 @@ void* vggg_init(unsigned short mode) {
 
     /* Allow memory mapping */
     mr.mr_base = (phys_bytes) vbe_mode.PhysBasePtr;
-    mr.mr_limit = mr.mr_base + vram_size;  
+    mr.mr_limit = mr.mr_base + vram_size;
 
     if( OK != (r = sys_privctl(SELF, SYS_PRIV_ADD_MEM, &mr)))
         panic("sys_privctl (ADD_MEM) failed: %d\n", r);
@@ -95,6 +96,8 @@ void* vggg_init(unsigned short mode) {
 
     if(video_mem == MAP_FAILED)
         panic("couldn't map video memory");
+
+    double_buffer = malloc(vram_size);
 
     reg86_t t;
     memset(&t, 0, sizeof(t)); /* wipe the struct */
@@ -132,13 +135,13 @@ int vg_paint_pixel(uint16_t x_coord, uint16_t y_coord, uint32_t color) {
     }
 
     if (bits_per_pixel == 8) { 
-        memset(video_mem + hres*y_coord + x_coord, color, 1);
+        memset(double_buffer + hres*y_coord + x_coord, color, 1);
     }
     else if (bits_per_pixel == 15) {
-        memcpy(video_mem + hres*y_coord*2 + x_coord*2, &color, 2);
+        memcpy(double_buffer + hres*y_coord*2 + x_coord*2, &color, 2);
     }
     else {
-        memcpy(video_mem + hres*y_coord*(bits_per_pixel/8) + x_coord*(bits_per_pixel/8), &color, (bits_per_pixel/8));
+        memcpy(double_buffer + hres*y_coord*(bits_per_pixel/8) + x_coord*(bits_per_pixel/8), &color, (bits_per_pixel/8));
     }
     return OK;
 }
@@ -153,5 +156,21 @@ void(vg_draw_xpm)(uint32_t *pixmap, xpm_image_t img, uint16_t x, uint16_t y) {
             vg_paint_pixel(x+dx, y+dy, pixmap[(dx + width*dy)]);
         }
     }
+}
+
+void(vg_draw_xpm_new)(uint32_t *pixmap, xpm_image_t img, uint16_t x, uint16_t y) {
+    int width = img.width;
+    int height = img.height;
+
+    for(int dy = 0; dy < height; dy++) {
+        for(int dx = 0; dx < 50 ; dx++) {
+            if (pixmap[(dx + width*dy)] != xpm_transparency_color(XPM_8_8_8_8))
+            vg_paint_pixel(x+dx, y+dy, pixmap[(dx + width*dy)]);
+        }
+    }
+}
+
+void (update_buffer)() {
+  memcpy(video_mem, double_buffer, hres * vres * ((bits_per_pixel + 7) / 8));
 }
 

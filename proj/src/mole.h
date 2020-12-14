@@ -10,18 +10,18 @@
 /* #include <Sprites/mole_down_miss1.xpm>
 #include <Sprites/mole_down_miss2.xpm>
 #include <Sprites/mole_down_miss3.xpm>
-#include <Sprites/mole_down_miss4.xpm>
+#include <Sprites/mole_down_miss4.xpm> */
 
 #include <Sprites/mole_down_hit1.xpm>
 #include <Sprites/mole_down_hit2.xpm>
 #include <Sprites/mole_down_hit3.xpm>
-#include <Sprites/mole_down_hit4.xpm> */
+#include <Sprites/mole_down_hit4.xpm>
 
 #define MOLE_HEIGHT  150
-#define MOLE_WIDHT   200
+#define MOLE_WIDHT   175
 #define STEP_FROM_X  180
 #define STEP_FROM_Y  180
-#define MOLE_UP_TIME 5
+#define MOLE_UP_TIME 3
 
 #define KBD_KEY_0 'A'
 #define KBD_KEY_1 'S'
@@ -30,13 +30,12 @@
 #define KBD_KEY_4 'K'
 #define KBD_KEY_5 'L'
 
-typedef enum {HIDED, UP_1, UP_2, UP_3, UP_4,DOWN_4, DOWN_3, DOWN_2, DOWN_1} Position;
+typedef enum {HIDED, UP_1, UP_2, UP_3, UP_4, DOWN_MISSED_4, DOWN_MISSED_3, DOWN_MISSED_2, DOWN_MISSED_1, DOWN_HIT_4, DOWN_HIT_3, DOWN_HIT_2, DOWN_HIT_1} Position;
 
 typedef struct  {
     xpm_image_t atual_img;
     xpm_image_t hided;
-    xpm_image_t up[4];
-    xpm_image_t down_miss[4];
+    xpm_image_t up_or_down_missed[4];
     xpm_image_t down_hit[4];
     
     int index;

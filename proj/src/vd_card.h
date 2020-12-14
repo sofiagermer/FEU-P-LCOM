@@ -22,4 +22,8 @@ int vg_paint_pixel(uint16_t x_coord, uint16_t y_coord, uint32_t color);
 
 void(vg_draw_xpm)(uint32_t *pixmap, xpm_image_t img, uint16_t x, uint16_t y);
 
+void(vg_draw_xpm_new)(uint32_t *pixmap, xpm_image_t img, uint16_t x, uint16_t y);
+
+void (update_buffer)();
+
 #endif /* _VD_CARD_H_ */
