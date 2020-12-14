@@ -7,20 +7,29 @@ Button *create_button(uint16_t xi, uint16_t yi, xpm_image_t *normal, xpm_image_t
   if (button == NULL)
     return NULL;
 
-  xpm_load(background_xpm, XPM_8_8_8_8, &button->normal);
-  xpm_load(background_xpm, XPM_8_8_8_8, &button-> bright);
+  xpm_load(normal, XPM_8_8_8_8, &button->normal);
+  xpm_load(bright, XPM_8_8_8_8, &button-> bright);
   button->xi = xi;
   button->yi = yi;
   button->xf = xi + but->normal->width;
   button->yf = yi + but->normal->height;
   button->highlighted = false;
 
-  return but;
+  return button;
+}
+
+Cursor *create_cursor(xpm_image_t *img_cursor){
+  Cursor *cursor = malloc(sizeof(Cursor));
+
+  if(cursor == NULL)
+    return NULL;
+  xpm_load(img_cursor, XPM_8_8_8_8, &cursor->cursor_xpm);
+  cursor-> x = 50;
+  cursor-> y = 50;
 }
 
 Menu *create_menu() {
   Menu *menu = malloc(sizeof(menu_t));
-
   xpm_load(background_xpm, XPM_8_8_8_8, &menu->background);
   xpm_load(logo_xpm, XPM_8_8_8_8, &menu->logo);
   xpm_load(logo_xpm, XPM_8_8_8_8, &menu->cursor);
@@ -70,7 +79,7 @@ void draw_menu(menu_t *menu) {
 }
 
 
-int mouse_hover(Button *but, xpm_image_t *cursor) {
+int mouse_over(Button *button, Cursor *cursor) {
   if (but->xi <= cursor->x && cursor->x <= but->xf && but->yi <= cursor->y && cursor->y <= but->yf)
     return 1;
   else
