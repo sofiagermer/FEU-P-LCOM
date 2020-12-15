@@ -28,7 +28,7 @@ WhacAMole *load_game()
         Mole *new_mole = createMole(i + 1);
         new_game->moles[i] = new_mole;
     }
-    Menu* menu = create_menu();
+    //Menu *menu = create_menu();
     new_game->game_state = MAIN_MENU; //ONLY FOR TESTING
     return new_game;
 }
@@ -38,6 +38,11 @@ int game_main_loop(WhacAMole *new_game)
     //WhacAMole* new_game = load_game();
     int ipc_status, r;
     message msg;
+
+
+    new_game->game_state= SINGLE_PLAYER;
+
+
 
     //draw background
     uint32_t *pixmap = (uint32_t *)new_game->background.bytes;
@@ -63,7 +68,7 @@ int game_main_loop(WhacAMole *new_game)
         return 1;
     }
 
-    while (new_game->game_state != EXIT)
+    while (new_game->game_state != EXIT && timer_counter / (60 / GAME_FPS) <= GAME_DURATION)
     {
         if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0)
         {
@@ -81,7 +86,7 @@ int game_main_loop(WhacAMole *new_game)
                     kbc_ih();
                     if (keyboard_done_getting_scancodes)
                     {
-                        interrupt_handler(KEYBOARD, new_game);
+                        GeneralInterrupt(KEYBOARD, new_game);
                         if (keyboard_done_getting_scancodes && scan_code == ESC_BREAK)
                         {
                             new_game->game_state = EXIT;
@@ -98,9 +103,9 @@ int game_main_loop(WhacAMole *new_game)
                         draw_mole(new_game->moles[i]);
                     }
                     show_timer(timer_counter, new_game);
-                    if (timer_counter % 60 == 0)
+                    if (timer_counter % (60 / GAME_FPS) == 0)
                     {
-                        interrupt_handler(TIMER, new_game);
+                        GeneralInterrupt(TIMER, new_game);
                     }
 
                     update_buffer();
@@ -126,107 +131,98 @@ int game_main_loop(WhacAMole *new_game)
     return OK;
 }
 
-void GeneralInterrupt(Device device, WhacAMole* new_game) {
-  switch (new_game ->gameState){
-    case MAINMENU:
-      MainMenuInterruptHandler(device, *new_game);
-      break;
-    case SINGLEPLAYER:
-      SinglePlayerInterruptHandler(device, *new_game);
-      break;
-    case MULTIPLAYER:
-      MultiPlayerInterrupthandler(device, *new_game);
-      break;
+void GeneralInterrupt(device device, WhacAMole *new_game)
+{
+    switch (new_game->game_state)
+    {
+    case MAIN_MENU:
+        Main_Menu_interrupt_handler(device, new_game);
+        break;
+    case SINGLE_PLAYER:
+        Single_Player_interrupt_handler(device, new_game);
+        break;
+    case MULTI_PLAYER:
+        Multi_Player_interrupt_handler(device, new_game);
+        break;
     case EXIT:
-      break;
-  }
+        break;
+    default:
+        break;
+    }
+    printf("ola")
 }
 
-void Main_Menu_interrupt_handler(device device, WhacAMole* game){
-    
+void Main_Menu_interrupt_handler(device device, WhacAMole *game)
+{
 }
-void Single_Player_interrupt_handler(device device, WhacAMole *new_game)
+void Single_Player_interrupt_handler(device device, WhacAMole *game)
 {
     srand(time(NULL)); // Initialization, should only be called once.
 
     Position mole_position;
 
-    int mole_up = -1;
-    bool up = false;
-
-    int mole_down = -1;
-    bool down = false;
-
     switch (device)
     {
     case TIMER:
-        //Checks if there is any mole going up
-        for (int i = 0; i < 6; i++)
+        for (int mole_index = 0; mole_index < 6; mole_index++)
         {
-            mole_position = game->moles[i]->position;
+            mole_position = game->moles[mole_index]->position;
+            //if a mole is going up, update its position
             if (mole_position == UP_1 || mole_position == UP_2 || mole_position == UP_3 || mole_position == UP_4)
             {
-                mole_up = i;
-                up = true;
-                break;
-            }
-        }
 
-        //if a mole is going up, update its position
-        if (up)
-        {
-            if (game->moles[mole_up]->position == UP_4)
-            {
-                if (game->moles[mole_up]->time_up == MOLE_UP_TIME)
+                if (game->moles[mole_index]->position == UP_4)
                 {
-                    game->moles[mole_up]->time_up = 0;
-                    game->moles[mole_up]->position = DOWN_MISSED_4;
+                    // Checks if the mole reached to the time limit to be hit
+                    //if (game->moles[mole_index]->time_up >= (MOLE_UP_TIME - ((double)(timer_counter / (sys_hz() / GAME_FPS)) / GAME_DURATION) * TIME_UP_LIMIT_DECREMENT))
+                    if (game->moles[mole_index]->time_up >= MOLE_UP_TIME)
+                    {
+                        game->moles[mole_index]->time_up = 0;
+                        game->moles[mole_index]->position = DOWN_MISSED_4;
+                    }
+                    else
+                        game->moles[mole_index]->time_up++;
                 }
                 else
-                    game->moles[mole_up]->time_up++;
+                    game->moles[mole_index]->position++;
+                continue;
             }
-            else
-                game->moles[mole_up]->position++;
-        }
 
-        //Checks if there is any mole going down
-        for (int i = 0; i < 6; i++)
-        {
-            mole_position = game->moles[i]->position;
+            //if a mole is going down, update its position
             if (mole_position == DOWN_MISSED_1 || mole_position == DOWN_MISSED_2 || mole_position == DOWN_MISSED_3 || mole_position == DOWN_MISSED_4 || mole_position == DOWN_HIT_1 || mole_position == DOWN_HIT_2 || mole_position == DOWN_HIT_3 || mole_position == DOWN_HIT_4)
             {
-                mole_down = i;
-                down = true;
-                break;
+                if (mole_position == DOWN_MISSED_1 || mole_position == DOWN_MISSED_2 || mole_position == DOWN_MISSED_3 || mole_position == DOWN_MISSED_4 || mole_position == DOWN_HIT_1 || mole_position == DOWN_HIT_2 || mole_position == DOWN_HIT_3 || mole_position == DOWN_HIT_4)
+                {
+                    if (game->moles[mole_index]->position == DOWN_MISSED_1 || game->moles[mole_index]->position == DOWN_HIT_1)
+                    {
+                        game->moles[mole_index]->position = HIDED;
+                    }
+                    else
+                        game->moles[mole_index]->position++;
+                }
+                continue;
             }
-        }
 
-        if (down)
-        {
-            if (game->moles[mole_down]->position == DOWN_MISSED_1 || game->moles[mole_down]->position == DOWN_HIT_1)
+            //Variable chance that if the mole is not active to go up
+            //if (rand() % 10000 > MOLE_PROBABILITY - (((timer_counter / (sys_hz() / GAME_FPS)) / GAME_DURATION) * PROBABILITY_LIMIT_DECREMENT))
+            if (rand() % 10000 > MOLE_PROBABILITY)
             {
-                game->moles[mole_down]->position = HIDED;
+                game->moles[mole_index]->position = UP_1;
             }
-            else
-                game->moles[mole_down]->position++;
         }
 
-        //move up a random mole
-        if (!down && !up)
-        {
-            int r = rand() % 6;
-            game->moles[r]->position = UP_1;
-        }
         break;
+
     case KEYBOARD:
-        for (int i = 0; i < 6; i++)
+        for (int mole_index = 0; mole_index < 6; mole_index++)
         {
-            mole_position = game->moles[i]->position;
-            if (game->moles[i]->kbd_key == kbd_manager(scan_code))
+            mole_position = game->moles[mole_index]->position;
+            if (game->moles[mole_index]->kbd_key == kbd_manager(scan_code))
             {
                 if (mole_position == UP_4)
                 {
-                    game->moles[i]->position = DOWN_HIT_4;
+                    game->moles[mole_index]->time_up = 0;
+                    game->moles[mole_index]->position = DOWN_HIT_4;
                     break;
                 }
             }
@@ -237,7 +233,12 @@ void Single_Player_interrupt_handler(device device, WhacAMole *new_game)
     }
 }
 
-void show_timer(unsigned int timer_counter, WhacAMole *game) {
+void Multi_Player_interrupt_handler(device device, WhacAMole *game)
+{
+}
+
+void show_timer(unsigned int timer_counter, WhacAMole *game)
+{
     uint8_t seconds = timer_counter / 60; // passing from ticks to seconds
     uint8_t minutes = seconds / 60;
     seconds = seconds % 60;
@@ -249,8 +250,7 @@ void show_timer(unsigned int timer_counter, WhacAMole *game) {
 
     left_minutes_number = minutes / 60;
     right_minutes_number = (minutes % 60) * 10;
-    
+
     uint32_t *pixmap = (uint32_t *)game->numbers.bytes;
     vg_draw_xpm_new(pixmap, game->numbers, 10, 10);
-
 }

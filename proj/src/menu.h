@@ -1,5 +1,4 @@
 
-#include "menu.h"
 #include <lcom/lcf.h>
 
 /**
@@ -8,18 +7,18 @@
  *  The normal xpm is the xpm that we are choosing, when one button is in it's normal state the others are bright
  *  A button also holds information about the coordinates from where it starts and to where it ends.
 **/
-
+/* 
 typedef enum_click{
     single_player_click,
     multiplayer_click,
     exit_click,
     no_click = -1
-}click_t;
+}click_t; */
 
 typedef struct {
     xpm_image_t normal;
     xpm_image_t bright;
-    bool bright;
+    bool bright_;
     uint16_t xi;
     uint16_t yi;
     uint16_t xf;
@@ -35,11 +34,11 @@ typedef struct{
 typedef struct {
     xpm_image_t background;
     xpm_image_t logo;         
-    button_t *single_player_button;  
-    button_t *multi_player_button; 
-    button_t *exit_button;                     
+    //button_t *single_player_button;  
+    //button_t *multi_player_button; 
+    //button_t *exit_button;                     
 } Menu;
 
 Menu *create_menu();
 
-void draw_menu(menu_t *menu);
+//void draw_menu(menu_t *menu);

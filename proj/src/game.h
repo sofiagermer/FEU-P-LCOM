@@ -1,4 +1,4 @@
-##include <lcom/lcf.h>
+#include <lcom/lcf.h>
 
 #include <Sprites/background.xpm>
 #include <Sprites/numbers.xpm>
@@ -12,6 +12,7 @@ typedef enum {MAIN_MENU, SINGLE_PLAYER, MULTI_PLAYER, GAME_OVER, EXIT} game_stat
 typedef enum {TIMER, KEYBOARD, MOUSE} device;
 
 typedef struct {
+	xpm_image_t background;
 	xpm_image_t numbers;
 	uint8_t timer_irq, keyboard_irq, mouse_irq;
 	Mole* moles[6];
