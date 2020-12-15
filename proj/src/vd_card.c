@@ -158,14 +158,13 @@ void(vg_draw_xpm)(uint32_t *pixmap, xpm_image_t img, uint16_t x, uint16_t y) {
     }
 }
 
-void(vg_draw_xpm_new)(uint32_t *pixmap, xpm_image_t img, uint16_t x, uint16_t y) {
+void(vg_draw_part_of_xpm)(uint32_t *pixmap, xpm_image_t img, uint16_t x, uint16_t y, int x_start, int x_end, int y_start, int y_end) {
     int width = img.width;
-    int height = img.height;
 
-    for(int dy = 0; dy < height; dy++) {
-        for(int dx = 0; dx < 50 ; dx++) {
+    for(int dy = y_start; dy < y_end; dy++){
+        for(int dx = x_start; dx < x_end ; dx++){
             if (pixmap[(dx + width*dy)] != xpm_transparency_color(XPM_8_8_8_8))
-            vg_paint_pixel(x+dx, y+dy, pixmap[(dx + width*dy)]);
+            vg_paint_pixel(x+(dx-x_start), y+(dy-y_start), pixmap[(dx + width*dy)]);
         }
     }
 }

@@ -237,20 +237,35 @@ void Multi_Player_interrupt_handler(device device, WhacAMole *game)
 {
 }
 
-void show_timer(unsigned int timer_counter, WhacAMole *game)
-{
+void show_timer(unsigned int timer_counter, WhacAMole *game) {
     uint8_t seconds = timer_counter / 60; // passing from ticks to seconds
     uint8_t minutes = seconds / 60;
     seconds = seconds % 60;
 
     uint8_t left_seconds_number, right_seconds_number;
     uint8_t left_minutes_number, right_minutes_number;
-    left_seconds_number = seconds / 60;
-    right_seconds_number = (seconds % 60) * 10;
 
-    left_minutes_number = minutes / 60;
-    right_minutes_number = (minutes % 60) * 10;
+    left_seconds_number = seconds / 10;
+    right_seconds_number = (seconds % 10);
+
+    left_minutes_number = minutes / 10;
+    right_minutes_number = (minutes % 10);   
+    
+    if (timer_counter%3600==0) {
+        printf("%d\n", minutes);
+        printf("%d\n", left_minutes_number);
+        printf("%d\n", right_minutes_number);
+    }
 
     uint32_t *pixmap = (uint32_t *)game->numbers.bytes;
-    vg_draw_xpm_new(pixmap, game->numbers, 10, 10);
+
+    //seconds
+    int x_timer_position = 275;
+    int y_timer_position = 15;
+    int number_size = game->numbers.width/10;
+    vg_draw_part_of_xpm(pixmap, game->numbers, x_timer_position, y_timer_position, left_minutes_number*50, left_minutes_number*50+50,0,number_size);
+    vg_draw_part_of_xpm(pixmap, game->numbers, x_timer_position+1*number_size, y_timer_position, right_minutes_number*50, right_minutes_number*50+50,0,number_size);
+    
+    vg_draw_part_of_xpm(pixmap, game->numbers, x_timer_position+2*number_size, y_timer_position, left_seconds_number*50, left_seconds_number*50+50, 0, number_size);
+    vg_draw_part_of_xpm(pixmap, game->numbers, x_timer_position+3*number_size, y_timer_position, right_seconds_number*50, right_seconds_number*50+50, 0, number_size);
 }
