@@ -1,6 +1,18 @@
 
 #include <lcom/lcf.h>
+#include <Sprites/background.xpm>
+#include <Sprites/cursor.xpm>
+#include <Sprites/exit_bright.xpm>
+#include <Sprites/exit.xpm>
+#include <Sprites/logo.xpm>
+#include <Sprites/multiplayer_bright.xpm>
+#include <Sprites/multiplayer.xpm>
+#include <Sprites/singleplayer_bright.xpm>
+#include <Sprites/singleplayer.xpm>
 
+
+#include <vd_card.h>
+#include <mouse.h>
 /**
  *  @brief Struct button_t. Acts as class BUTTON.
  *  A button has two xpms: a default and a bright xpm.
@@ -32,13 +44,19 @@ typedef struct{
 } Cursor;
 
 typedef struct {
-    xpm_image_t background;
     xpm_image_t logo;         
-    //button_t *single_player_button;  
-    //button_t *multi_player_button; 
-    //button_t *exit_button;                     
+    Button *single_player_button;  
+    Button *multi_player_button; 
+    Button *exit_button;                     
 } Menu;
 
+Button *create_button(uint16_t xi, uint16_t yi, xpm_row_t *normal, xpm_row_t *bright);
 Menu *create_menu();
+Cursor *create_cursor(xpm_image_t *img_cursor);
 
-//void draw_menu(menu_t *menu);
+void draw_cursor(Cursor *cursor);
+void draw_background();
+void draw_menu(Menu *menu);
+
+int mouse_over(Button *button, Cursor *cursor);
+void move_cursor(Cursor *cursor, int16_t dx, int16_t dy);
