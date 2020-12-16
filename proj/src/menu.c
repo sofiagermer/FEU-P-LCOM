@@ -1,139 +1,263 @@
-#include "menu.h"
 #include <lcom/lcf.h>
+#include <stdint.h>
 
-Button *create_button(uint16_t xi, uint16_t yi, xpm_image_t *normal, xpm_image_t *bright) {
-  Button *button = malloc(sizeof(Button));
+#include "i8042.h"
+#include "mouse.h"
 
-  if (button == NULL)
-    return NULL;
+static int mouse_hook_id = MOUSE_IRQ;   //hook id used for the mouse
+uint8_t packet[3];                      //array of bytes, packet read from the mouse
+bool mouse_last_byte_of_packet = false; //signals that the last byte of a packet was read
 
-  xpm_load(normal, XPM_8_8_8_8, &button->normal);
-  xpm_load(bright, XPM_8_8_8_8, &button-> bright);
-  button->xi = xi;
-  button->yi = yi;
-  button->xf = xi + but->normal->width;
-  button->yf = yi + but->normal->height;
-  button->highlighted = false;
-
-  return button;
-}
-
-Cursor *create_cursor(xpm_image_t *img_cursor){
-  Cursor *cursor = malloc(sizeof(Cursor));
-
-  if(cursor == NULL)
-    return NULL;
-  xpm_load(img_cursor, XPM_8_8_8_8, &cursor->cursor_xpm);
-  cursor-> x = 50;
-  cursor-> y = 50;
-}
-
-Menu *create_menu() {
-  Menu *menu = malloc(sizeof(menu_t));
-  xpm_load(background_xpm, XPM_8_8_8_8, &menu->background);
-  xpm_load(logo_xpm, XPM_8_8_8_8, &menu->logo);
-  xpm_load(logo_xpm, XPM_8_8_8_8, &menu->cursor);
-  //ver coordenadas onde vou por os botões
-  menu->single_player_button = create_button(699, 570, exit_xpm, exit_bright_xpm);
-  menu->multi_player_button = create_button(280, 400, singleplayer_xpm, singleplayer_bright_xpm);
-  menu->exit_button = create_button(280, 300, multiplayer_xpm, multiplayer_bright_xpm);
-  return menu;
-}
-
-void draw_menu(menu_t *menu) {
-    uint32_t* background_map = (uint32_t*) menu->background.bytes;
-    vg_draw_xpm(background_map, menu->background, 0, 0);
-
-    uint32_t* logo_map = (uint32_t*) menu->logo.bytes;
-    vg_draw_xpm(logo_map, menu->logo, 119 , 88);
-
-    if (menu->single_player_button->bright){
-        uint32_t* sp_normal_map = (uint32_t*) menu->single_player_button.bytes;
-        vg_draw_xpm(sp_normal_map, menu->single_player_button, 214 , 313);
-    }
-    else{
-        uint32_t* sp_bright_map = (uint32_t*) menu->single_player_button.bytes;
-        vg_draw_xpm(sp_bright_map, menu->single_player_button, 214 , 313);
-    }
-
-    if (menu->multi_player_button->bright){
-        uint32_t* mp_normal_map = (uint32_t*) menu->multi_player_button.bytes;
-        vg_draw_xpm(mp_normal_map, menu->multi_player_button, 119 , 88);
-    }
-    else{
-        uint32_t* mp_bright_map = (uint32_t*) menu->multi_player_button.bytes;
-        vg_draw_xpm(mp_bright_map, menu->multi_player_button, 119 , 88);
-    }
-
-    if (menu->exit_button->bright)
-        uint32_t* ex_normal_map = (uint32_t*) menu->exit_button.bytes;
-        vg_draw_xpm(ex_normal_map, menu->exit_button, 119 , 88);
-    }
-    else{
-        uint32_t* ex_bright_map = (uint32_t*) menu->exit_button.bytes;
-        vg_draw_xpm(ex_bright_map, menu->exit_button, 119 , 88);
-    }
-
-    uint32_t* cursor_map = (uint32_t*) menu->cursor.bytes;
-    vg_draw_xpm(cursor_map, menu->cursor, 50 , 50);
-}
-
-
-int mouse_over(Button *button, Cursor *cursor) {
-  if (but->xi <= cursor->x && cursor->x <= but->xf && but->yi <= cursor->y && cursor->y <= but->yf)
-    return 1;
-  else
-    return 0;
-}
-
-void move_cursor(Menu *menu, int16_t dx, int16_t dy) {
-  menu->cursor->x += dx;
-  if (menu->cursor->x > 790) {
-    menu->cursor->x = 790;
+int mouse_subscribe_int(uint16_t *bit_no) {
+  *bit_no = BIT(mouse_hook_id);
+  if (sys_irqsetpolicy(MOUSE_IRQ, IRQ_REENABLE | IRQ_EXCLUSIVE, &mouse_hook_id) != OK) {
+    printf("mouse_subscribe_int::ERROR in setting policy!\n");
+    return FAIL;
   }
-  else if (menu->cursor->x < 0) {
-    menu->cursor->x = 0;
-  }
+  return OK;
+}
 
-  menu->cursor->y -= dy;
-  if (menu->cursor->y > 590) {
-    menu->cursor->y = 590;
-  }
-  else if (menu->cursor->y < 0) {
-    menu->cursor->y = 0;
+int mouse_unsubscribe_int() {
+  if (sys_irqrmpolicy(&mouse_hook_id) != OK) {
+    printf("kbd_unsubscribe_int::ERROR removing policy!\n");
+    return FAIL;
+  };
+  return OK;
+}
+
+void mouse_read_status_register(uint8_t *stat) {
+  if (util_sys_inb(STAT_REG, stat) != OK) {
+    printf("ERROR::Unable to read keyboard status register!\n");
   }
 }
 
-void loop_choose_button(){
-    int ipc_status, r;
-    message msg;
-    uint16_t mouse_id;
-    
-    uint16_t x_cursor = 50;
-    uint16_t y_cursor = 50;
-    while (cnt > 0) {
-    if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
-      printf("driver_receive failed with: %d", r);
-      continue;
+int mouse_check_status_register() {
+  uint8_t temp=0; //hold the status
+  mouse_read_status_register(&temp);
+  if ((temp & (KBD_PAR_ERROR | KBD_TIME_ERROR)) != 0) {
+      return 1;
+  }
+  return 0;
+}
+
+int mouse_output_full() {
+  uint8_t st;
+  mouse_read_status_register(&st);
+  if (st & KBD_OBF && !mouse_check_status_register())
+    return OK;
+  return FAIL;
+}
+
+int mouse_input_empty() {
+  uint8_t st;
+  mouse_read_status_register(&st);
+  if (st & KBD_IBF && !mouse_check_status_register())
+    return FAIL;
+  return OK;
+}
+
+int mouse_read_out_buffer(uint8_t *info) {
+  if (util_sys_inb(OUT_BUFF, info) != OK) {
+    printf("ERROR::Error reading the out buffer!\n");
+    return FAIL;
+  }
+  return OK;
+}
+
+void(mouse_ih)(void) {
+  uint8_t aux;
+  static uint8_t index = 0;
+  if (mouse_last_byte_of_packet) {
+    index = 0;
+    mouse_last_byte_of_packet = false;
+  }
+  if (mouse_output_full() == OK) {
+    if (mouse_read_out_buffer(&aux) != OK) {
+      printf("ERROR::Error reading the out buffer!\n");
+      return;
     }
-    if (is_ipc_notify(ipc_status)) { // received notification
-      switch (_ENDPOINT_P(msg.m_source)) {
-        case HARDWARE:                              // hardware interrupt notification
-          if (msg.m_notify.interrupts & mouse_id) { // subscribed interrupt BIT MASK
-            mouse_ih();
-            if (mouse_last_byte_of_packet) {
-              struct packet new_packet;
-              mouse_parse_packet(packet, &new_packet);
-              move_cursor(cursor_map, menu->logo, new_packet.dx , new_packet.dy);
-            }
+    packet[index++] = aux;
+    if (index == 3) {
+      mouse_last_byte_of_packet = true;
+    }
+  }
+}
+
+void mouse_parse_packet(uint8_t packet[], struct packet *new_packet) {
+  uint8_t first_byte = packet[0];
+  new_packet->bytes[0] = packet[0];
+  new_packet->bytes[1] = packet[1];
+  new_packet->bytes[2] = packet[2];
+  new_packet->rb = (first_byte & RB);
+  new_packet->lb = (first_byte & LB);
+  new_packet->mb = (first_byte & MB);
+  new_packet->x_ov = (first_byte & X_OVFL);
+  new_packet->y_ov = (first_byte & Y_OVFL);
+  new_packet->delta_x = (uint16_t) packet[1];
+  new_packet->delta_y = (uint16_t) packet[2];
+
+  if (first_byte & MSB_X_DELTA)
+    new_packet->delta_x |= 0xFF00;
+  
+
+  if (first_byte & MSB_Y_DELTA)
+    new_packet->delta_y |= 0xFF00;
+  
+}
+
+int issue_command_to_kbc(uint8_t command, uint8_t arguments) {
+  uint8_t attemps = 0; //number of attemps the function will try to issue the command
+
+  //stops after 4 attemps
+  while (attemps < 4) {
+    attemps++;
+    // input buffer should not be full
+    if (mouse_input_empty() == OK) {
+      //writtes command
+      if (sys_outb(CMD_REG, command) == OK) {
+        //in case the command is WriteCommandByte it needs the new command (arguments)
+        if (command == WRITE_CMD_BYTE) {
+          if (sys_outb(CMD_ARG_REG, arguments) == OK) {
+            return OK;
           }
-          break;
-        default:
-          break; /* no other notifications expected: do nothing */
+        }
+        else {
+          return OK;
+        }
       }
     }
-    else { /* received a standard message, not a notification */
-           /* no standard messages expected: do nothing */
-    }
+
+    tickdelay(micros_to_ticks(DELAY_US));
   }
+  return 0;
+}
+
+int mouse_issue_cmd_to_kbc(uint8_t command, uint8_t argument) {
+  uint8_t mouse_response, tries=4;
+  
+  while (tries > 0) {
+    if (mouse_kbc_write_cmd(command) != OK) {
+      printf("ERROR::writing the command!\n");
+      return 1;
+    }
+
+    if (command == WRITE_CMD_BYTE) {
+      if (mouse_kbc_write_argument(argument) != OK)
+        printf("ERROR::writing the new command byte!\n");
+        return 1;
+    }
+
+    if (command == WRITE_BYTE_TO_MOUSE) {
+      if (mouse_write_command(argument,&mouse_response) != OK) 
+        return 1;
+      
+      if (mouse_response == ACK)
+        return OK;
+      else if (mouse_response == ERROR)
+        return 1;
+    }
+
+    tries--;
+    tickdelay(micros_to_ticks(DELAY_US));
+  }
+
+  printf("After 4 tries, kbc was not ready to receive the command\n");
+  return 1;
+}
+
+int issue_command_to_mouse(uint8_t command) {
+  while (true) {
+    if(mouse_issue_cmd_to_kbc(WRITE_BYTE_TO_MOUSE, 0) != OK) 
+      return 1;
+    if (mouse_input_empty() == OK)
+      if(sys_outb(IN_BUFF,command) != OK) 
+        return 1;
+    uint8_t response;
+    //if (output_full() == OK) {
+      if (util_sys_inb(OUT_BUFF, &response) != OK)
+        return 1;
+      if (response == ACK)
+        return OK;
+      if (response == ERROR)
+        return 1;
+    //}
+    tickdelay(micros_to_ticks(DELAY_US));
+  }
+}
+
+int mouse_kbc_write_cmd(uint8_t command) {
+  uint8_t status, tries=4;
+  if (util_sys_inb(STAT_REG,&status) != OK) {
+    printf("ERROR::Unable to read the status register!\n");
+    return 1;
+  }
+
+  while (tries > 0) {
+    if ((status & KBD_IBF) == 0) {
+
+      if (sys_outb(CMD_REG, command) != OK) 
+        return 1;
+
+      return OK;
+    }
+
+    tries--;
+    tickdelay(micros_to_ticks(DELAY_US));
+  }
+
+  printf("After 4 tries, kbc was not ready to receive the command\n");
+  return 1;
+}
+
+int mouse_kbc_write_argument(uint8_t argument) {
+  uint8_t status, tries = 4;
+  if (util_sys_inb(STAT_REG,&status) != OK ) {
+    printf("ERROR::Unable to read the status register!\n");
+    return 1;
+  }
+
+  while (tries > 0) {
+    if((status & KBD_IBF) == 0) {
+
+      if (sys_outb(CMD_ARG_REG,argument) != OK) {
+        return 1;
+      }
+
+      return OK;
+    }
+
+    tries--;
+    tickdelay(micros_to_ticks(DELAY_US));
+  }
+
+  printf("After 4 tries, kbc was not ready to receive the argument\n");
+  return 1;
+}
+
+int mouse_write_command(uint8_t command, uint8_t*response) {
+  uint8_t status, tries=4;
+  if (util_sys_inb(STAT_REG,&status) != OK) {
+    printf("ERROR::Unable to read the status register!\n");
+    return 1;
+  }
+  while (tries > 0) {
+    if ((status & KBD_IBF) == 0) {
+      if (sys_outb(CMD_ARG_REG,command) != OK) {
+        return 1;
+      }
+      tickdelay(micros_to_ticks(DELAY_US));
+      
+      if (util_sys_inb(OUT_BUFF,response) != OK) {
+        return 1;
+      }
+      printf("OK!\n");
+      return OK;
+    }
+
+    tries--;
+    tickdelay(micros_to_ticks(DELAY_US));
+  }
+
+  printf("After 4 tries, mouse was not ready\n");
+  return 1;
 }
