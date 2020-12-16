@@ -3,6 +3,7 @@
 
 #include "game.h"
 #include "keyboard.h"
+#include "mouse.h"
 #include "vd_card.h"
 #include "kbd_manager.h"
 #include "menu.h"
@@ -13,6 +14,10 @@ extern unsigned int timer_counter;
 //KEYBOARD
 extern bool keyboard_done_getting_scancodes;
 extern uint8_t scan_code;
+
+//MOUSE
+extern bool mouse_last_byte_of_packet;
+extern uint8_t packet[];
 
 WhacAMole *load_game()
 {
@@ -29,7 +34,7 @@ WhacAMole *load_game()
         new_game->moles[i] = new_mole;
     }
     //Menu *menu = create_menu();
-    new_game->game_state = MAIN_MENU; //ONLY FOR TESTING
+    new_game->game_state = SINGLE_PLAYER; //ONLY FOR TESTING
     return new_game;
 }
 
@@ -39,14 +44,6 @@ int game_main_loop(WhacAMole *new_game)
     int ipc_status, r;
     message msg;
 
-
-    new_game->game_state= SINGLE_PLAYER;
-
-
-
-    //draw background
-    uint32_t *pixmap = (uint32_t *)new_game->background.bytes;
-    vg_draw_xpm(pixmap, new_game->background, 0, 0);
     //draw all moles
     for (int i = 0; i < 6; i++)
     {
@@ -64,6 +61,13 @@ int game_main_loop(WhacAMole *new_game)
         return 1;
     }
     if (timer_subscribe_int(&new_game->timer_irq) != OK)
+    {
+        return 1;
+    }
+    if (issue_cmd_to_kbc(WRITE_BYTE_TO_MOUSE,EN_DATA_REPORT) != OK) {
+        return 1;
+    }
+    if (mouse_subscribe_int(&new_game->mouse_irq) != OK)
     {
         return 1;
     }
@@ -97,7 +101,7 @@ int game_main_loop(WhacAMole *new_game)
                 if (msg.m_notify.interrupts & new_game->timer_irq)
                 {
                     timer_int_handler();
-                    vg_draw_xpm(pixmap, new_game->background, 0, 0);
+                    draw_background();
                     for (int i = 0; i < 6; i++)
                     {
                         draw_mole(new_game->moles[i]);
@@ -109,6 +113,18 @@ int game_main_loop(WhacAMole *new_game)
                     }
 
                     update_buffer();
+                }
+                if (msg.m_notify.interrupts & new_game->mouse_irq)
+                {
+                    mouse_ih();
+                    if (keyboard_done_getting_scancodes)
+                    {
+                        GeneralInterrupt(MOUSE, new_game);
+                        if (mouse_last_byte_of_packet) {
+                            struct packet new_packet;
+                            mouse_parse_packet(packet, &new_packet);
+                        }
+                    }
                 }
 
                 break;
@@ -125,6 +141,13 @@ int game_main_loop(WhacAMole *new_game)
     }
     if (timer_unsubscribe_int() != OK)
     {
+        return 1;
+    }
+    if (mouse_unsubscribe_int() != OK) {
+        return 1;
+    }
+
+    if (issue_command_to_mouse(DIS_DATA_REPORT) != OK) {
         return 1;
     }
 
@@ -149,11 +172,13 @@ void GeneralInterrupt(device device, WhacAMole *new_game)
     default:
         break;
     }
-    printf("ola")
 }
 
 void Main_Menu_interrupt_handler(device device, WhacAMole *game)
 {
+    /*switch (device){
+        case MOUSE:
+    }*/
 }
 void Single_Player_interrupt_handler(device device, WhacAMole *game)
 {
