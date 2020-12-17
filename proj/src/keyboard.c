@@ -123,7 +123,7 @@ int issue_cmd_to_kbc(uint8_t command, uint8_t argument) {
     tries--;
     tickdelay(micros_to_ticks(DELAY_US));
   }
-
+  printf(" issue_cmd_to_kbc ");
   printf("After 4 tries, kbc was not ready to receive the command\n");
   return FAIL;
 }
@@ -148,7 +148,7 @@ int kbc_write_cmd(uint8_t command) {
     tries--;
     tickdelay(micros_to_ticks(DELAY_US));
   }
-
+  printf("kbc_write_cmd");
   printf("After 4 tries, kbc was not ready to receive the command\n");
   return 1;
 }

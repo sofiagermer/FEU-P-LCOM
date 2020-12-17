@@ -8,7 +8,7 @@ extern uint8_t packet[];
 //background xpm
 xpm_image_t background;
 
-Button *create_button(uint16_t xi, uint16_t yi, xpm_row_t *normal, xpm_row_t *bright) {
+Button *load_button(uint16_t xi, uint16_t yi, xpm_row_t *normal, xpm_row_t *bright) {
   Button *button = malloc(sizeof(Button));
 
   if (button == NULL)
@@ -29,7 +29,7 @@ Button *create_button(uint16_t xi, uint16_t yi, xpm_row_t *normal, xpm_row_t *br
   return button;
 }
 
-Cursor *create_cursor(xpm_image_t *img_cursor){
+Cursor *load_cursor(xpm_row_t *img_cursor){
   Cursor *cursor = malloc(sizeof(Cursor));
 
   if(cursor == NULL)
@@ -37,22 +37,30 @@ Cursor *create_cursor(xpm_image_t *img_cursor){
 
   xpm_image_t img;
   xpm_load(cursor_xpm, XPM_8_8_8_8, &img);
-  cursor->cursor_xpm = img;
+  cursor->cursor_image = img;
   cursor-> x = 50;
   cursor-> y = 50;
   return cursor;
 }
 
-Menu *create_menu() {
+Menu *load_menu() {
   Menu *menu = malloc(sizeof(Menu));
+
   xpm_image_t img;
   xpm_load(logo_xpm, XPM_8_8_8_8, &img);
   menu->logo =img;
   //ver coordenadas onde vou por os botões
-  menu->single_player_button = create_button(699, 570, exit_xpm, exit_bright_xpm);
-  menu->multi_player_button = create_button(280, 400, singleplayer_xpm, singleplayer_bright_xpm);
-  menu->exit_button = create_button(280, 300, multiplayer_xpm, multiplayer_bright_xpm);
+  menu->single_player_button = load_button(699, 570, exit_xpm, exit_bright_xpm);
+  menu->multi_player_button = load_button(280, 400, singleplayer_xpm, singleplayer_bright_xpm);
+  menu->exit_button = load_button(280, 300, multiplayer_xpm, multiplayer_bright_xpm);
+
+  menu->cursor = load_cursor(cursor_xpm);
+
   return menu;
+}
+
+void load_background(){
+    xpm_load(background_xpm, XPM_8_8_8_8, &background);
 }
 
 void draw_background(){
@@ -95,8 +103,8 @@ void draw_menu(Menu *menu) {
 }
 
 void draw_cursor(Cursor *cursor){
-  uint32_t* cursor_map = (uint32_t*) cursor->cursor_xpm.bytes;
-  vg_draw_xpm(cursor_map, cursor->cursor_xpm, 0, 0);
+  uint32_t* cursor_map = (uint32_t*) cursor->cursor_image.bytes;
+  vg_draw_xpm(cursor_map, cursor->cursor_image, 0, 0);
 }
 
 int mouse_over(Button *button, Cursor *cursor) {
@@ -106,8 +114,9 @@ int mouse_over(Button *button, Cursor *cursor) {
     return 0;
 }
 
-void move_cursor(Cursor *cursor, int16_t dx, int16_t dy) {
-  cursor->x += dx;
+
+void move_cursor(Cursor *cursor, struct packet *packet) {
+  cursor->x += packet->delta_x;
   if (cursor->x > 790) {
     cursor->x = 790;
   }
@@ -115,7 +124,7 @@ void move_cursor(Cursor *cursor, int16_t dx, int16_t dy) {
     cursor->x = 0;
   }
 
-  cursor->y -= dy;
+  cursor->y -= packet ->delta_y;
   if (cursor->y > 590) {
     cursor->y = 590;
   }
@@ -124,3 +133,18 @@ void move_cursor(Cursor *cursor, int16_t dx, int16_t dy) {
   }
 }
 
+/*
+void MainMenuInterruptHandler(device device, WhackAMole *game){
+  static struct mouse_ev * mouseEvent;
+  swith(device){
+    case TIMER: //não fazer nada
+      break;
+    case KEYBOARD:
+      break;
+    case MOUSE:
+      mouseEvent = mouse_get_event(&packet);
+      move_cursor(&packet);
+      if(mouseEvent->type == LB_RELEASED){
+        
+      }
+}*/

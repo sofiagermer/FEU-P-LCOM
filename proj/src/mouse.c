@@ -1,4 +1,3 @@
-#pragma once
 #include <lcom/lcf.h>
 #include <stdint.h>
 
@@ -206,6 +205,7 @@ int mouse_kbc_write_cmd(uint8_t command) {
     tickdelay(micros_to_ticks(DELAY_US));
   }
 
+  printf("mouse_kbc_write_cmd\n");
   printf("After 4 tries, kbc was not ready to receive the command\n");
   return 1;
 }
@@ -230,7 +230,7 @@ int mouse_kbc_write_argument(uint8_t argument) {
     tries--;
     tickdelay(micros_to_ticks(DELAY_US));
   }
-
+  printf("mouse_kbc_write_argument \n");
   printf("After 4 tries, kbc was not ready to receive the argument\n");
   return 1;
 }
@@ -258,7 +258,7 @@ int mouse_write_command(uint8_t command, uint8_t*response) {
     tries--;
     tickdelay(micros_to_ticks(DELAY_US));
   }
-
+  
   printf("After 4 tries, mouse was not ready\n");
   return 1;
 }

@@ -2,11 +2,12 @@
 #include <stdint.h>
 
 #include "game.h"
-#include "keyboard.h"
-#include "mouse.h"
-#include "vd_card.h"
-#include "kbd_manager.h"
-#include "menu.h"
+
+// #include "keyboard.h"
+// #include "mouse.h"
+// #include "vd_card.h"
+// #include "kbd_manager.h"
+// #include "menu.h"
 
 //TIMER
 extern unsigned int timer_counter;
@@ -23,8 +24,7 @@ WhacAMole *load_game()
 {
     WhacAMole *new_game = (WhacAMole *)malloc(sizeof(WhacAMole));
 
-    //load background
-    xpm_load(background_xpm, XPM_8_8_8_8, &new_game->background);
+    load_background();
     xpm_load(numbers_xpm, XPM_8_8_8_8, &new_game->numbers);
     //load all moles
     for (int i = 0; i < 6; i++)
@@ -33,7 +33,7 @@ WhacAMole *load_game()
         Mole *new_mole = createMole(i + 1);
         new_game->moles[i] = new_mole;
     }
-    //Menu *menu = create_menu();
+    new_game->menu = load_menu();
     new_game->game_state = SINGLE_PLAYER; //ONLY FOR TESTING
     return new_game;
 }
@@ -56,18 +56,18 @@ int game_main_loop(WhacAMole *new_game)
     vg_draw_xpm(pixmap_teste, teste_numbers, 100, 20);
 
     //Subscribing all devices
-    if (kbd_subscribe_int(&new_game->keyboard_irq) != OK)
-    {
-        return 1;
-    }
     if (timer_subscribe_int(&new_game->timer_irq) != OK)
     {
         return 1;
     }
-    if (issue_cmd_to_kbc(WRITE_BYTE_TO_MOUSE,EN_DATA_REPORT) != OK) {
+    if (mouse_issue_cmd_to_kbc(WRITE_BYTE_TO_MOUSE,EN_DATA_REPORT) != OK) {
         return 1;
     }
     if (mouse_subscribe_int(&new_game->mouse_irq) != OK)
+    {
+        return 1;
+    }
+    if (kbd_subscribe_int(&new_game->keyboard_irq) != OK)
     {
         return 1;
     }
@@ -159,7 +159,7 @@ void GeneralInterrupt(device device, WhacAMole *new_game)
     switch (new_game->game_state)
     {
     case MAIN_MENU:
-        Main_Menu_interrupt_handler(device, new_game);
+        //Main_Menu_interrupt_handler(device, new_game);
         break;
     case SINGLE_PLAYER:
         Single_Player_interrupt_handler(device, new_game);
@@ -174,12 +174,6 @@ void GeneralInterrupt(device device, WhacAMole *new_game)
     }
 }
 
-void Main_Menu_interrupt_handler(device device, WhacAMole *game)
-{
-    /*switch (device){
-        case MOUSE:
-    }*/
-}
 void Single_Player_interrupt_handler(device device, WhacAMole *game)
 {
     srand(time(NULL)); // Initialization, should only be called once.
@@ -262,21 +256,36 @@ void Multi_Player_interrupt_handler(device device, WhacAMole *game)
 {
 }
 
-void show_timer(unsigned int timer_counter, WhacAMole *game)
-{
+void show_timer(unsigned int timer_counter, WhacAMole *game) {
     uint8_t seconds = timer_counter / 60; // passing from ticks to seconds
     uint8_t minutes = seconds / 60;
     seconds = seconds % 60;
 
     uint8_t left_seconds_number, right_seconds_number;
     uint8_t left_minutes_number, right_minutes_number;
-    left_seconds_number = seconds / 60;
-    right_seconds_number = (seconds % 60) * 10;
 
-    left_minutes_number = minutes / 60;
-    right_minutes_number = (minutes % 60) * 10;
+    left_seconds_number = seconds / 10;
+    right_seconds_number = (seconds % 10);
+
+    left_minutes_number = minutes / 10;
+    right_minutes_number = (minutes % 10);   
+    
+    if (timer_counter%3600==0) {
+        printf("%d\n", minutes);
+        printf("%d\n", left_minutes_number);
+        printf("%d\n", right_minutes_number);
+    }
 
     uint32_t *pixmap = (uint32_t *)game->numbers.bytes;
-    vg_draw_xpm_new(pixmap, game->numbers, 10, 10);
+    
+    //seconds
+    int x_timer_position = 275;
+    int y_timer_position = 15;
+    int number_size = game->numbers.width/10;
+    vg_draw_part_of_xpm(pixmap, game->numbers, x_timer_position, y_timer_position, left_minutes_number*50, left_minutes_number*50+50,0,number_size);
+    vg_draw_part_of_xpm(pixmap, game->numbers, x_timer_position+1*number_size, y_timer_position, right_minutes_number*50, right_minutes_number*50+50,0,number_size);
+    
+    vg_draw_part_of_xpm(pixmap, game->numbers, x_timer_position+2*number_size, y_timer_position, left_seconds_number*50, left_seconds_number*50+50, 0, number_size);
+    vg_draw_part_of_xpm(pixmap, game->numbers, x_timer_position+3*number_size, y_timer_position, right_seconds_number*50, right_seconds_number*50+50, 0, number_size);
 }
 

@@ -13,6 +13,8 @@
 
 #include <vd_card.h>
 #include <mouse.h>
+#include <state_machine.h>
+
 /**
  *  @brief Struct button_t. Acts as class BUTTON.
  *  A button has two xpms: a default and a bright xpm.
@@ -38,7 +40,7 @@ typedef struct {
 } Button;
 
 typedef struct{
-    xpm_image_t cursor_xpm;
+    xpm_image_t cursor_image;
     uint16_t x;
     uint16_t y;
 } Cursor;
@@ -47,16 +49,21 @@ typedef struct {
     xpm_image_t logo;         
     Button *single_player_button;  
     Button *multi_player_button; 
-    Button *exit_button;                     
+    Button *exit_button;       
+    Cursor *cursor;              
 } Menu;
 
-Button *create_button(uint16_t xi, uint16_t yi, xpm_row_t *normal, xpm_row_t *bright);
-Menu *create_menu();
-Cursor *create_cursor(xpm_image_t *img_cursor);
+void load_background();
+
+Button *load_button(uint16_t xi, uint16_t yi, xpm_row_t *normal, xpm_row_t *bright);
+Menu *load_menu();
+Cursor *load_cursor(xpm_row_t *img_cursor);
 
 void draw_cursor(Cursor *cursor);
 void draw_background();
 void draw_menu(Menu *menu);
 
 int mouse_over(Button *button, Cursor *cursor);
-void move_cursor(Cursor *cursor, int16_t dx, int16_t dy);
+void move_cursor(Cursor *cursor, struct packet *packet);
+
+
