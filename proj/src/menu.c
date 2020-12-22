@@ -50,9 +50,9 @@ Menu *load_menu() {
   xpm_load(logo_xpm, XPM_8_8_8_8, &img);
   menu->logo =img;
   //ver coordenadas onde vou por os botões
-  menu->single_player_button = load_button(699, 570, exit_xpm, exit_bright_xpm);
-  menu->multi_player_button = load_button(280, 400, singleplayer_xpm, singleplayer_bright_xpm);
-  menu->exit_button = load_button(280, 300, multiplayer_xpm, multiplayer_bright_xpm);
+  menu->single_player_button = load_button(300, 400, singleplayer_xpm, singleplayer_bright_xpm);
+  menu->multi_player_button = load_button(300, 450, multiplayer_xpm, multiplayer_bright_xpm);
+  menu->exit_button = load_button(300, 500, exit_xpm, exit_bright_xpm);
 
   menu->cursor = load_cursor(cursor_xpm);
 
@@ -68,43 +68,48 @@ void draw_background(){
     vg_draw_xpm(background_map,background, 0, 0);
 }
 
-void draw_menu(Menu *menu) {
-    draw_background();
+void draw_logo(Menu *menu){
+  uint32_t* logo_map = (uint32_t*) menu->logo.bytes;
+  vg_draw_xpm(logo_map, menu->logo, 168 , 118);
+}
 
-    uint32_t* logo_map = (uint32_t*) menu->logo.bytes;
-    vg_draw_xpm(logo_map, menu->logo, 119 , 88);
-
-    if (menu->single_player_button->bright_){
+void draw_buttons(Menu * menu){
+   if (menu->single_player_button->bright_){
         uint32_t* sp_normal_map = (uint32_t*) menu->single_player_button->bright.bytes;
-        vg_draw_xpm(sp_normal_map, menu->single_player_button->bright, 214 , 313);
+        vg_draw_xpm(sp_normal_map, menu->single_player_button->bright, 300 , 400);
     }
     else{
         uint32_t* sp_bright_map = (uint32_t*) menu->single_player_button->normal.bytes;
-        vg_draw_xpm(sp_bright_map, menu->single_player_button->normal, 214 , 313);
+        vg_draw_xpm(sp_bright_map, menu->single_player_button->normal, 300 , 400);
     }
 
     if (menu->multi_player_button->bright_){
         uint32_t* mp_normal_map = (uint32_t*) menu->multi_player_button->bright.bytes;
-        vg_draw_xpm(mp_normal_map, menu->multi_player_button->bright, 119 , 88);
+        vg_draw_xpm(mp_normal_map, menu->multi_player_button->bright, 300 , 450);
     }
     else{
         uint32_t* mp_bright_map = (uint32_t*) menu->multi_player_button->normal.bytes;
-        vg_draw_xpm(mp_bright_map, menu->multi_player_button->normal, 119 , 88);
+        vg_draw_xpm(mp_bright_map, menu->multi_player_button->normal, 300 , 450);
     }
 
     if (menu->exit_button->bright_){
         uint32_t* ex_normal_map = (uint32_t*) menu->exit_button->bright.bytes;
-        vg_draw_xpm(ex_normal_map, menu->exit_button->bright, 119 , 88);
+        vg_draw_xpm(ex_normal_map, menu->exit_button->bright, 300 , 500);
     }
     else{
         uint32_t* ex_bright_map = (uint32_t*) menu->exit_button->normal.bytes;
-        vg_draw_xpm(ex_bright_map, menu->exit_button->normal, 119 , 88);
+        vg_draw_xpm(ex_bright_map, menu->exit_button->normal, 300 , 500);
     }
+}
+void draw_menu(Menu *menu) {
+    draw_background();
+    draw_logo(menu);
+    draw_buttons(menu);
 }
 
 void draw_cursor(Cursor *cursor){
   uint32_t* cursor_map = (uint32_t*) cursor->cursor_image.bytes;
-  vg_draw_xpm(cursor_map, cursor->cursor_image, 0, 0);
+  vg_draw_xpm(cursor_map, cursor->cursor_image, cursor->x, cursor->y);
 }
 
 int mouse_over(Button *button, Cursor *cursor) {
@@ -115,36 +120,33 @@ int mouse_over(Button *button, Cursor *cursor) {
 }
 
 
-void move_cursor(Cursor *cursor, struct packet *packet) {
-  cursor->x += packet->delta_x;
-  if (cursor->x > 790) {
-    cursor->x = 790;
+void move_cursor(struct packet *packet, Menu *menu) {
+  menu->cursor->x += packet->delta_x;
+  if (menu->cursor->x > 790) {
+    menu->cursor->x = 790 - menu->cursor->cursor_image.width;
   }
-  else if (cursor->x < 0) {
-    cursor->x = 0;
+  else if (menu->cursor->x < 0) {
+    menu->cursor->x = 0;
   }
 
-  cursor->y -= packet ->delta_y;
-  if (cursor->y > 590) {
-    cursor->y = 590;
+  menu->cursor->y -= packet ->delta_y;
+  if (menu->cursor->y > 590) {
+    menu->cursor->y = 590 - menu->cursor->cursor_image.height;
   }
-  else if (cursor->y < 0) {
-    cursor->y = 0;
+  else if (menu->cursor->y < 0) {
+    menu->cursor->y = 0;
   }
-}
+  if(mouse_over(menu->single_player_button, menu->cursor))
+    menu->single_player_button->bright_ = true;
+  else if(mouse_over(menu->multi_player_button, menu->cursor))
+    menu->multi_player_button->bright_ = true;
+  else if(mouse_over(menu->exit_button, menu-> cursor))
+    menu->exit_button->bright_ =true;
+  else{ 
+    menu->single_player_button->bright_ = false;
+    menu->multi_player_button->bright_ = false;
+    menu->exit_button->bright_ = false;
+  }
+  }
 
-/*
-void MainMenuInterruptHandler(device device, WhackAMole *game){
-  static struct mouse_ev * mouseEvent;
-  swith(device){
-    case TIMER: //não fazer nada
-      break;
-    case KEYBOARD:
-      break;
-    case MOUSE:
-      mouseEvent = mouse_get_event(&packet);
-      move_cursor(&packet);
-      if(mouseEvent->type == LB_RELEASED){
-        
-      }
-}*/
+

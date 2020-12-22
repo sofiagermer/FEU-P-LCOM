@@ -55,15 +55,18 @@ typedef struct {
 
 void load_background();
 
+
 Button *load_button(uint16_t xi, uint16_t yi, xpm_row_t *normal, xpm_row_t *bright);
 Menu *load_menu();
 Cursor *load_cursor(xpm_row_t *img_cursor);
 
 void draw_cursor(Cursor *cursor);
 void draw_background();
+void draw_logo(Menu *menu);
+void draw_buttons(Menu *menu);
 void draw_menu(Menu *menu);
 
 int mouse_over(Button *button, Cursor *cursor);
-void move_cursor(Cursor *cursor, struct packet *packet);
+void move_cursor(struct packet *packet, Menu *menu);
 
 

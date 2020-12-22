@@ -1,6 +1,5 @@
 #include "state_machine.h"
 
-static State state = INITIAL;
 uint8_t delta_x, delta_y;
 bool left_press = false, right_press = false, mid_press = false;
 

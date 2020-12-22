@@ -34,7 +34,7 @@ WhacAMole *load_game()
         new_game->moles[i] = new_mole;
     }
     new_game->menu = load_menu();
-    new_game->game_state = SINGLE_PLAYER; //ONLY FOR TESTING
+    new_game->game_state = MAIN_MENU; 
     return new_game;
 }
 
@@ -43,17 +43,6 @@ int game_main_loop(WhacAMole *new_game)
     //WhacAMole* new_game = load_game();
     int ipc_status, r;
     message msg;
-
-    //draw all moles
-    for (int i = 0; i < 6; i++)
-    {
-        draw_mole(new_game->moles[i]);
-    }
-
-    xpm_image_t teste_numbers;
-    xpm_load(numbers_xpm, XPM_8_8_8_8, &teste_numbers);
-    uint32_t *pixmap_teste = (uint32_t *)teste_numbers.bytes;
-    vg_draw_xpm(pixmap_teste, teste_numbers, 100, 20);
 
     //Subscribing all devices
     if (timer_subscribe_int(&new_game->timer_irq) != OK)
@@ -101,12 +90,6 @@ int game_main_loop(WhacAMole *new_game)
                 if (msg.m_notify.interrupts & new_game->timer_irq)
                 {
                     timer_int_handler();
-                    draw_background();
-                    for (int i = 0; i < 6; i++)
-                    {
-                        draw_mole(new_game->moles[i]);
-                    }
-                    show_timer(timer_counter, new_game);
                     if (timer_counter % (60 / GAME_FPS) == 0)
                     {
                         GeneralInterrupt(TIMER, new_game);
@@ -117,22 +100,18 @@ int game_main_loop(WhacAMole *new_game)
                 if (msg.m_notify.interrupts & new_game->mouse_irq)
                 {
                     mouse_ih();
-                    if (keyboard_done_getting_scancodes)
+                    if (mouse_last_byte_of_packet)
                     {
                         GeneralInterrupt(MOUSE, new_game);
-                        if (mouse_last_byte_of_packet) {
-                            struct packet new_packet;
-                            mouse_parse_packet(packet, &new_packet);
-                        }
                     }
                 }
-
                 break;
             default:
                 break;
             }
         }
     }
+
 
     //Unsubscribing all devices
     if (kbd_unsubscribe_int() != OK)
@@ -159,7 +138,7 @@ void GeneralInterrupt(device device, WhacAMole *new_game)
     switch (new_game->game_state)
     {
     case MAIN_MENU:
-        //Main_Menu_interrupt_handler(device, new_game);
+        Main_Menu_interrupt_handler(device, new_game);
         break;
     case SINGLE_PLAYER:
         Single_Player_interrupt_handler(device, new_game);
@@ -174,36 +153,66 @@ void GeneralInterrupt(device device, WhacAMole *new_game)
     }
 }
 
-void Single_Player_interrupt_handler(device device, WhacAMole *game)
+void Main_Menu_interrupt_handler(device device, WhacAMole *new_game){
+    struct mouse_ev mouse_event;
+    struct packet new_packet;
+    switch(device){
+        case TIMER:
+            draw_menu(new_game->menu);
+            draw_cursor(new_game->menu->cursor);
+            if (new_game->menu->single_player_button->bright_){
+                if(mouse_event.type == LB_RELEASED)
+                    new_game->game_state = SINGLE_PLAYER;
+            }
+            break;
+        case KEYBOARD:
+            break;
+        case MOUSE:
+            mouse_parse_packet(packet, &new_packet);
+            mouse_event = mouse_get_event(&new_packet);
+            if (new_game->menu->single_player_button->bright_){
+                if(mouse_event.type == LB_RELEASED)
+                    new_game->game_state = SINGLE_PLAYER;
+            }
+            move_cursor(&new_packet, new_game->menu);
+            break;
+    }
+}
+
+void Single_Player_interrupt_handler(device device, WhacAMole *new_game)
 {
     srand(time(NULL)); // Initialization, should only be called once.
 
-    Position mole_position;
+    Position mole_position; 
 
     switch (device)
     {
     case TIMER:
+        draw_background();
+        draw_all_moles(new_game);
+        show_timer(timer_counter, new_game);
         for (int mole_index = 0; mole_index < 6; mole_index++)
         {
-            mole_position = game->moles[mole_index]->position;
+            //Mole *ml = game->moles[mole_index];
+            mole_position = new_game->moles[mole_index]->position;
             //if a mole is going up, update its position
             if (mole_position == UP_1 || mole_position == UP_2 || mole_position == UP_3 || mole_position == UP_4)
             {
 
-                if (game->moles[mole_index]->position == UP_4)
+                if (new_game->moles[mole_index]->position == UP_4)
                 {
                     // Checks if the mole reached to the time limit to be hit
                     //if (game->moles[mole_index]->time_up >= (MOLE_UP_TIME - ((double)(timer_counter / (sys_hz() / GAME_FPS)) / GAME_DURATION) * TIME_UP_LIMIT_DECREMENT))
-                    if (game->moles[mole_index]->time_up >= MOLE_UP_TIME)
+                    if (new_game->moles[mole_index]->time_up >= MOLE_UP_TIME)
                     {
-                        game->moles[mole_index]->time_up = 0;
-                        game->moles[mole_index]->position = DOWN_MISSED_4;
+                        new_game->moles[mole_index]->time_up = 0;
+                        new_game->moles[mole_index]->position = DOWN_MISSED_4;
                     }
                     else
-                        game->moles[mole_index]->time_up++;
+                        new_game->moles[mole_index]->time_up++;
                 }
                 else
-                    game->moles[mole_index]->position++;
+                    new_game->moles[mole_index]->position++;
                 continue;
             }
 
@@ -212,12 +221,12 @@ void Single_Player_interrupt_handler(device device, WhacAMole *game)
             {
                 if (mole_position == DOWN_MISSED_1 || mole_position == DOWN_MISSED_2 || mole_position == DOWN_MISSED_3 || mole_position == DOWN_MISSED_4 || mole_position == DOWN_HIT_1 || mole_position == DOWN_HIT_2 || mole_position == DOWN_HIT_3 || mole_position == DOWN_HIT_4)
                 {
-                    if (game->moles[mole_index]->position == DOWN_MISSED_1 || game->moles[mole_index]->position == DOWN_HIT_1)
+                    if (new_game->moles[mole_index]->position == DOWN_MISSED_1 || new_game->moles[mole_index]->position == DOWN_HIT_1)
                     {
-                        game->moles[mole_index]->position = HIDED;
+                        new_game->moles[mole_index]->position = HIDED;
                     }
                     else
-                        game->moles[mole_index]->position++;
+                        new_game->moles[mole_index]->position++;
                 }
                 continue;
             }
@@ -226,7 +235,7 @@ void Single_Player_interrupt_handler(device device, WhacAMole *game)
             //if (rand() % 10000 > MOLE_PROBABILITY - (((timer_counter / (sys_hz() / GAME_FPS)) / GAME_DURATION) * PROBABILITY_LIMIT_DECREMENT))
             if (rand() % 10000 > MOLE_PROBABILITY)
             {
-                game->moles[mole_index]->position = UP_1;
+                new_game->moles[mole_index]->position = UP_1;
             }
         }
 
@@ -235,19 +244,19 @@ void Single_Player_interrupt_handler(device device, WhacAMole *game)
     case KEYBOARD:
         for (int mole_index = 0; mole_index < 6; mole_index++)
         {
-            mole_position = game->moles[mole_index]->position;
-            if (game->moles[mole_index]->kbd_key == kbd_manager(scan_code))
+            mole_position = new_game->moles[mole_index]->position;
+            if (new_game->moles[mole_index]->kbd_key == kbd_manager(scan_code))
             {
                 if (mole_position == UP_4)
                 {
-                    game->moles[mole_index]->time_up = 0;
-                    game->moles[mole_index]->position = DOWN_HIT_4;
+                    new_game->moles[mole_index]->time_up = 0;
+                    new_game->moles[mole_index]->position = DOWN_HIT_4;
                     break;
                 }
             }
         }
         break;
-    default:
+        case MOUSE:    default:
         break;
     }
 }
@@ -256,7 +265,7 @@ void Multi_Player_interrupt_handler(device device, WhacAMole *game)
 {
 }
 
-void show_timer(unsigned int timer_counter, WhacAMole *game) {
+void show_timer(unsigned int timer_counter, WhacAMole *new_game) {
     uint8_t seconds = timer_counter / 60; // passing from ticks to seconds
     uint8_t minutes = seconds / 60;
     seconds = seconds % 60;
@@ -276,16 +285,27 @@ void show_timer(unsigned int timer_counter, WhacAMole *game) {
         printf("%d\n", right_minutes_number);
     }
 
-    uint32_t *pixmap = (uint32_t *)game->numbers.bytes;
+    uint32_t *pixmap = (uint32_t *)new_game->numbers.bytes;
     
     //seconds
     int x_timer_position = 275;
     int y_timer_position = 15;
-    int number_size = game->numbers.width/10;
-    vg_draw_part_of_xpm(pixmap, game->numbers, x_timer_position, y_timer_position, left_minutes_number*50, left_minutes_number*50+50,0,number_size);
-    vg_draw_part_of_xpm(pixmap, game->numbers, x_timer_position+1*number_size, y_timer_position, right_minutes_number*50, right_minutes_number*50+50,0,number_size);
+    int number_size = new_game->numbers.width/10;
+    vg_draw_part_of_xpm(pixmap, new_game->numbers, x_timer_position, y_timer_position, left_minutes_number*50, left_minutes_number*50+50,0,number_size);
+    vg_draw_part_of_xpm(pixmap, new_game->numbers, x_timer_position+1*number_size, y_timer_position, right_minutes_number*50, right_minutes_number*50+50,0,number_size);
     
-    vg_draw_part_of_xpm(pixmap, game->numbers, x_timer_position+2*number_size, y_timer_position, left_seconds_number*50, left_seconds_number*50+50, 0, number_size);
-    vg_draw_part_of_xpm(pixmap, game->numbers, x_timer_position+3*number_size, y_timer_position, right_seconds_number*50, right_seconds_number*50+50, 0, number_size);
+    vg_draw_part_of_xpm(pixmap, new_game->numbers, x_timer_position+2*number_size, y_timer_position, left_seconds_number*50, left_seconds_number*50+50, 0, number_size);
+    vg_draw_part_of_xpm(pixmap, new_game->numbers, x_timer_position+3*number_size, y_timer_position, right_seconds_number*50, right_seconds_number*50+50, 0, number_size);
 }
 
+void draw_numbers(WhacAMole *new_game){
+    uint32_t *pixmap_teste = (uint32_t *) (new_game->numbers).bytes;
+    vg_draw_xpm(pixmap_teste, new_game->numbers, 100, 20);
+}
+
+void draw_all_moles(WhacAMole * new_game){
+    for (int i = 0; i < 6; i++)
+    {
+        draw_mole(new_game->moles[i]);
+    }
+}
