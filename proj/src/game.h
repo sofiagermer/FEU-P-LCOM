@@ -9,14 +9,14 @@
 #include "i8254.h"
 #include "keyboard.h"
 #include "mole.h"
-#include "menu.h"
+//#include "menu.h"
 #include "kbd_manager.h"
 #include "mouse.h"
 #include "state_machine.h"
 #include "rtc.h"
+#include "Player.h"
 
-
-typedef enum {MAIN_MENU, SINGLE_PLAYER, MULTI_PLAYER, GAME_OVER, EXIT} game_state;
+typedef enum {MAIN_MENU, PLAYER_SETTINGS, SINGLE_PLAYER, MULTI_PLAYER, GAME_OVER, EXIT} game_state;
 typedef enum {TIMER, KEYBOARD, MOUSE} device;
 
 typedef struct {
@@ -29,6 +29,7 @@ typedef struct {
 	uint16_t mouse_irq;
 	Mole* moles[6];
 	Menu* menu;
+	Player_Settings* player_settings;
 	Cursor* cursor;
 	game_state game_state;
 
@@ -44,6 +45,7 @@ int game_main_loop(WhacAMole* game);
 
 void GeneralInterrupt(device device,WhacAMole* game);
 void Main_Menu_interrupt_handler(device device, WhacAMole *new_game);
+void Player_Settings_interrupt_handler(device device, WhacAMole *new_game);
 void Single_Player_interrupt_handler(device device, WhacAMole* game);
 void Multi_Player_interrupt_handler(device device, WhacAMole* game);
 //void Game_Over_interrupt_handler(device device, WhacAMole* game);

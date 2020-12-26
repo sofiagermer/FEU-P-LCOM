@@ -33,6 +33,8 @@ WhacAMole *load_game()
         new_game->moles[i] = new_mole;
     }
     new_game->menu = load_menu();
+    new_game->player_settings = load_player_settings();
+    new_game->cursor = load_cursor(cursor_xpm);
     new_game->game_state = MAIN_MENU; 
 
 
@@ -115,7 +117,7 @@ int game_main_loop(WhacAMole *new_game)
             }
         }
     }
-    if(timer_counter / (60 / GAME_FPS) > GAME_DURATION){
+    if (timer_counter / (60 / GAME_FPS) > GAME_DURATION){
         new_game->game_state = GAME_OVER;
     }
 
@@ -147,20 +149,50 @@ void GeneralInterrupt(device device, WhacAMole *new_game)
     case MAIN_MENU:
         Main_Menu_interrupt_handler(device, new_game);
         break;
+    case PLAYER_SETTINGS:
+        Player_Settings_interrupt_handler(device, new_game);
+        break;
     case SINGLE_PLAYER:
         Single_Player_interrupt_handler(device, new_game);
         break;
     case MULTI_PLAYER:
         Multi_Player_interrupt_handler(device, new_game);
         break;
-    case GAME_OVER:
-        break;
     case EXIT:
+        //TODO
         break;
     default:
         break;
     }
 }
+
+void Player_Settings_interrupt_handler(device device, WhacAMole *new_game) {
+    struct mouse_ev mouse_event;
+    struct packet new_packet;
+    switch(device){
+        case TIMER:
+            draw_menu_player_settings(new_game->player_settings);
+            break;
+        case KEYBOARD:
+            break;
+        case MOUSE:
+            mouse_parse_packet(packet, &new_packet);
+            mouse_event = mouse_get_event(&new_packet);
+            if (mouse_over(new_game->player_settings->left_arrow, new_game->player_settings->cursor) && mouse_event.type == LB_RELEASED) {
+                move_left_avatar(new_game->player_settings);
+            }
+            else if (mouse_over(new_game->player_settings->right_arrow, new_game->player_settings->cursor) && mouse_event.type == LB_RELEASED) {
+                move_right_avatar(new_game->player_settings);
+            }
+            else if (mouse_over(new_game->player_settings->start, new_game->player_settings->cursor) && mouse_event.type == LB_RELEASED) {
+                new_game->cursor->cursor_image = get_hammer(new_game->player_settings);
+                new_game->game_state = SINGLE_PLAYER;
+            }
+            move_cursor__(&new_packet, new_game->player_settings);
+            break;
+    }
+}
+
 
 void Main_Menu_interrupt_handler(device device, WhacAMole *new_game){
     struct mouse_ev mouse_event;
@@ -169,20 +201,16 @@ void Main_Menu_interrupt_handler(device device, WhacAMole *new_game){
         case TIMER:
             draw_menu(new_game->menu);
             draw_cursor(new_game->menu->cursor);
-            if (new_game->menu->single_player_button->bright_){
-                if(mouse_event.type == LB_RELEASED)
-                    new_game->game_state = SINGLE_PLAYER;
-            }
+            //if (new_game->menu->single_player_button->bright_ && mouse_event.type == LB_RELEASED)
+            //    new_game->game_state = PLAYER_SETTINGS;
             break;
         case KEYBOARD:
             break;
         case MOUSE:
             mouse_parse_packet(packet, &new_packet);
             mouse_event = mouse_get_event(&new_packet);
-            if (new_game->menu->single_player_button->bright_){
-                if(mouse_event.type == LB_RELEASED)
-                    new_game->game_state = SINGLE_PLAYER;
-            }
+            if (new_game->menu->single_player_button->bright_ && mouse_event.type == LB_RELEASED)
+                new_game->game_state = PLAYER_SETTINGS;
             move_cursor(&new_packet, new_game->menu->cursor);
             check_cursor_over_button(new_game->menu);
             break;
