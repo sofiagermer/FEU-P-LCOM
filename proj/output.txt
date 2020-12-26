@@ -4,3 +4,4 @@ OK!
 OK!
 OK!
 After 4 tries, kbc was not ready to receive the command
+DATE ----  20/12/26Time ----  20:7:40

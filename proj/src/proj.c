@@ -52,6 +52,13 @@ int(proj_main_loop)(int argc, char *argv[]) {
 
   vg_exit();
 
+  Time time = get_time();
+  Date date = get_date();
+
+  printf("DATE ----  %d/%d/%d", date.year,date.month,date.day);
+  printf("Time ----  %d:%d:%d", time.hour,time.minute, time.second);
+  return OK;
+
   return OK;
 }
 

@@ -13,6 +13,7 @@
 #include "kbd_manager.h"
 #include "mouse.h"
 #include "state_machine.h"
+#include "rtc.h"
 
 
 typedef enum {MAIN_MENU, SINGLE_PLAYER, MULTI_PLAYER, GAME_OVER, EXIT} game_state;
