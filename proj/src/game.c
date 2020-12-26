@@ -3,12 +3,6 @@
 
 #include "game.h"
 
-// #include "keyboard.h"
-// #include "mouse.h"
-// #include "vd_card.h"
-// #include "kbd_manager.h"
-// #include "menu.h"
-
 //TIMER
 extern unsigned int timer_counter;
 
@@ -26,6 +20,11 @@ WhacAMole *load_game()
 
     load_background();
     xpm_load(numbers_xpm, XPM_8_8_8_8, &new_game->numbers);
+    new_game->cursor = load_cursor(cursor_xpm);
+    xpm_load(moles_missed_xpm, XPM_8_8_8_8, &new_game->moles_missed);
+    xpm_load(moles_hitted_xpm, XPM_8_8_8_8, &new_game->moles_hitted);
+    xpm_load(numbers_moles_xpm, XPM_8_8_8_8, &new_game->numbers_mole);
+    xpm_load(table_xpm, XPM_8_8_8_8, &new_game->table);
     //load all moles
     for (int i = 0; i < 6; i++)
     {
@@ -35,6 +34,11 @@ WhacAMole *load_game()
     }
     new_game->menu = load_menu();
     new_game->game_state = MAIN_MENU; 
+
+
+    //para o player
+    new_game->num_moles_missed = 0;
+    new_game->num_moles_hitted = 0;
     return new_game;
 }
 
@@ -111,6 +115,9 @@ int game_main_loop(WhacAMole *new_game)
             }
         }
     }
+    if(timer_counter / (60 / GAME_FPS) > GAME_DURATION){
+        new_game->game_state = GAME_OVER;
+    }
 
 
     //Unsubscribing all devices
@@ -146,6 +153,8 @@ void GeneralInterrupt(device device, WhacAMole *new_game)
     case MULTI_PLAYER:
         Multi_Player_interrupt_handler(device, new_game);
         break;
+    case GAME_OVER:
+        break;
     case EXIT:
         break;
     default:
@@ -174,7 +183,8 @@ void Main_Menu_interrupt_handler(device device, WhacAMole *new_game){
                 if(mouse_event.type == LB_RELEASED)
                     new_game->game_state = SINGLE_PLAYER;
             }
-            move_cursor(&new_packet, new_game->menu);
+            move_cursor(&new_packet, new_game->menu->cursor);
+            check_cursor_over_button(new_game->menu);
             break;
     }
 }
@@ -182,7 +192,8 @@ void Main_Menu_interrupt_handler(device device, WhacAMole *new_game){
 void Single_Player_interrupt_handler(device device, WhacAMole *new_game)
 {
     srand(time(NULL)); // Initialization, should only be called once.
-
+    struct mouse_ev mouse_event;
+    struct packet new_packet;
     Position mole_position; 
 
     switch (device)
@@ -190,6 +201,11 @@ void Single_Player_interrupt_handler(device device, WhacAMole *new_game)
     case TIMER:
         draw_background();
         draw_all_moles(new_game);
+        draw_table(new_game);
+        draw_counter_moles(new_game);
+        draw_number_moles_missed(new_game);
+        draw_number_moles_hitted(new_game);
+        draw_cursor(new_game->cursor);
         show_timer(timer_counter, new_game);
         for (int mole_index = 0; mole_index < 6; mole_index++)
         {
@@ -256,7 +272,25 @@ void Single_Player_interrupt_handler(device device, WhacAMole *new_game)
             }
         }
         break;
-        case MOUSE:    default:
+    case MOUSE:   
+        mouse_parse_packet(packet, &new_packet);
+        mouse_event = mouse_get_event(&new_packet);
+        move_cursor(&new_packet, new_game->cursor);
+        int pos_mole_hitted = check_over_mole(new_game);
+        if(pos_mole_hitted != 7){
+            if(mouse_event.type == LB_RELEASED){
+                hit_mole(new_game, pos_mole_hitted);
+                new_game->num_moles_hitted++;
+            }
+        }
+        else if(pos_mole_hitted == 7){
+            if(mouse_event.type == LB_RELEASED){
+                new_game->num_moles_missed++;
+            }
+        }
+
+        break; 
+    default:
         break;
     }
 }
@@ -264,7 +298,6 @@ void Single_Player_interrupt_handler(device device, WhacAMole *new_game)
 void Multi_Player_interrupt_handler(device device, WhacAMole *game)
 {
 }
-
 void show_timer(unsigned int timer_counter, WhacAMole *new_game) {
     uint8_t seconds = timer_counter / 60; // passing from ticks to seconds
     uint8_t minutes = seconds / 60;
@@ -308,4 +341,78 @@ void draw_all_moles(WhacAMole * new_game){
     {
         draw_mole(new_game->moles[i]);
     }
+}
+
+void draw_table(WhacAMole * new_game){
+    uint32_t* table_map = (uint32_t*) new_game->table.bytes;
+    vg_draw_xpm(table_map, new_game->table, 0, 470);
+
+}
+void draw_counter_moles(WhacAMole * new_game){
+    uint32_t* moles_hitted_map = (uint32_t*) new_game->moles_hitted.bytes;
+    vg_draw_xpm(moles_hitted_map, new_game->moles_hitted, 25, 530);
+
+    uint32_t* moles_missed_map = (uint32_t*) new_game->moles_missed.bytes;
+    vg_draw_xpm(moles_missed_map, new_game->moles_missed, 25, 555);
+}
+
+void draw_number_moles_missed(WhacAMole * new_game){
+    uint32_t* moles_numbers_map = (uint32_t*) new_game->numbers_mole.bytes;
+    int score = new_game->num_moles_missed;
+    int second = score%10;
+    int first = score/10;
+    int x = new_game->numbers_mole.width;
+    if(score == 0){
+        vg_draw_part_of_xpm(moles_numbers_map, new_game->numbers_mole, x , 555, x, x+17 , 0, 25);
+    }
+    else if(score < 10){
+        vg_draw_part_of_xpm(moles_numbers_map, new_game->numbers_mole, x , 555 , x + score*17, x + score*17 +17 , 0, 25);
+    }
+    else{
+        vg_draw_part_of_xpm(moles_numbers_map, new_game->numbers_mole, x , 555 , x + first*17, x + first*17 +17 , 0, 25);
+        vg_draw_part_of_xpm(moles_numbers_map, new_game->numbers_mole, x +17 , 555, x + second*17, x + second*17 +17 , 0, 25);
+    }
+}
+
+void draw_number_moles_hitted(WhacAMole * new_game){
+    uint32_t* moles_numbers_map = (uint32_t*) new_game->numbers_mole.bytes;
+    int score = new_game->num_moles_hitted;
+    int second = score%10;
+    int first = score/10;
+    int x = new_game->numbers_mole.width;
+    
+    if(score == 0){
+        vg_draw_part_of_xpm(moles_numbers_map, new_game->numbers_mole, x , 530, x, x+17 , 0, 25);
+    }
+    else if(score < 10){
+        vg_draw_part_of_xpm(moles_numbers_map, new_game->numbers_mole, x , 530 , x + score*17, x + score*17 +17 , 0, 25);
+    }
+    else{
+        vg_draw_part_of_xpm(moles_numbers_map, new_game->numbers_mole, x , 530 , x + first*17, x + first*17 +17 , 0, 25);
+        vg_draw_part_of_xpm(moles_numbers_map, new_game->numbers_mole, x +17 , 530, x + second*17, x + second*17 +17 , 0, 25);
+    }
+}
+
+int check_over_mole(WhacAMole * new_game){
+    Position mole_position; 
+    int xf,yf;
+    for (int mole_index = 0; mole_index < 6; mole_index++)
+        { 
+            mole_position = new_game->moles[mole_index]->position;
+            xf = new_game->moles[mole_index]->x + 175;
+            yf = new_game->moles[mole_index]->y + 151;
+            if (new_game->moles[mole_index]->x  <= new_game->cursor->x && new_game->cursor->x <= xf && new_game->moles[mole_index]->y <= new_game->cursor->y && new_game->cursor->y <= yf)
+            {
+                if (mole_position == UP_4)
+                {
+                    return mole_index;
+                }
+            }
+        }
+    return 7;
+}
+
+void hit_mole(WhacAMole * new_game, int mole_index){
+    new_game->moles[mole_index]->time_up = 0;
+    new_game->moles[mole_index]->position = DOWN_HIT_4;
 }

@@ -67,6 +67,6 @@ void draw_buttons(Menu *menu);
 void draw_menu(Menu *menu);
 
 int mouse_over(Button *button, Cursor *cursor);
-void move_cursor(struct packet *packet, Menu *menu);
-
+void move_cursor(struct packet *packet, Cursor *cursor);
+void check_cursor_over_button(Menu *menu);
 

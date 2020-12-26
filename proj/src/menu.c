@@ -119,23 +119,7 @@ int mouse_over(Button *button, Cursor *cursor) {
     return 0;
 }
 
-
-void move_cursor(struct packet *packet, Menu *menu) {
-  menu->cursor->x += packet->delta_x;
-  if (menu->cursor->x > 790) {
-    menu->cursor->x = 790 - menu->cursor->cursor_image.width;
-  }
-  else if (menu->cursor->x < 0) {
-    menu->cursor->x = 0;
-  }
-
-  menu->cursor->y -= packet ->delta_y;
-  if (menu->cursor->y > 590) {
-    menu->cursor->y = 590 - menu->cursor->cursor_image.height;
-  }
-  else if (menu->cursor->y < 0) {
-    menu->cursor->y = 0;
-  }
+void check_cursor_over_button(Menu *menu){
   if(mouse_over(menu->single_player_button, menu->cursor))
     menu->single_player_button->bright_ = true;
   else if(mouse_over(menu->multi_player_button, menu->cursor))
@@ -146,7 +130,25 @@ void move_cursor(struct packet *packet, Menu *menu) {
     menu->single_player_button->bright_ = false;
     menu->multi_player_button->bright_ = false;
     menu->exit_button->bright_ = false;
+}
+}
+
+void move_cursor(struct packet *packet, Cursor *cursor) {
+  cursor->x += packet->delta_x;
+  if (cursor->x > 790) {
+    cursor->x = 790 - cursor->cursor_image.width;
   }
+  else if (cursor->x < 0) {
+    cursor->x = 0;
   }
+
+  cursor->y -= packet ->delta_y;
+  if (cursor->y > 590) {
+    cursor->y = 590 - cursor->cursor_image.height;
+  }
+  else if (cursor->y < 0) {
+    cursor->y = 0;
+  }
+}
 
 
