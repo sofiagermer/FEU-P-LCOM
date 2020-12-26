@@ -7,7 +7,7 @@
 #include <stdint.h>
 
 #include "game.h"
-
+#include "rtc.h"
 
 // Any header files included below this line should have been created by you
 
@@ -52,6 +52,11 @@ int(proj_main_loop)(int argc, char *argv[]) {
 
   vg_exit();
 
+  Time time = get_time();
+  Date date = get_date();
+
+  printf("DATE ----  %d/%d/%d", date.year,date.month,date.day);
+  printf("Time ----  %d:%d:%d", time.hour,time.minute, time.second);
   return OK;
 }
 
