@@ -100,10 +100,6 @@ Player_Settings *load_player_settings() {
     return player_settings;
 }
 
-
-
-
-
 void draw_player(Player *player)
 {
     uint32_t *pixmap = (uint32_t *)player->avatar.bytes;

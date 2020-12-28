@@ -35,13 +35,35 @@ WhacAMole *load_game()
     new_game->menu = load_menu();
     new_game->player_settings = load_player_settings();
     new_game->cursor = load_cursor(cursor_xpm);
+    new_game->game_over = load_game_over();
     new_game->game_state = MAIN_MENU; 
 
 
     //para o player
-    new_game->num_moles_missed = 0;
-    new_game->num_moles_hitted = 0;
+    new_game->player_settings->player->missed_moles = 0;
+    new_game->player_settings->player->hitted_moles = 0;
     return new_game;
+}
+
+GameOver *load_game_over()
+{
+    GameOver *game_over = (GameOver *)malloc(sizeof(GameOver));
+    xpm_image_t img;
+
+    xpm_load(game_over_xpm, XPM_8_8_8_8, &img);
+	game_over->logo_game_over = img;
+    xpm_load(game_over_missed_moles_xpm, XPM_8_8_8_8, &img);
+    game_over->missed_moles = img;
+    xpm_load(game_over_hitted_moles_xpm, XPM_8_8_8_8, &img);
+    game_over->hitted_moles = img;
+    xpm_load(game_over_numbers_xpm, XPM_8_8_8_8, &img);
+    game_over->numbers = img;
+
+    game_over->cursor = load_cursor(cursor_xpm);
+    game_over->main_menu_button = load_button(300, 450, game_over_main_menu_xpm, game_over_main_menu_bright_xpm);
+    game_over->ranking_button = load_button(300, 500, game_over_ranking_xpm, game_over_ranking_bright_xpm);
+    game_over->exit_button = load_button(300, 550, game_over_exit_xpm, game_over_exit_bright_xpm);
+    return game_over;
 }
 
 int game_main_loop(WhacAMole *new_game)
@@ -67,7 +89,7 @@ int game_main_loop(WhacAMole *new_game)
         return 1;
     }
 
-    while (new_game->game_state != EXIT && timer_counter / (60 / GAME_FPS) <= GAME_DURATION)
+    while (new_game->game_state != EXIT )
     {
         if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0)
         {
@@ -96,6 +118,9 @@ int game_main_loop(WhacAMole *new_game)
                 if (msg.m_notify.interrupts & new_game->timer_irq)
                 {
                     timer_int_handler();
+                    if(timer_counter / (60 / GAME_FPS) == GAME_DURATION){
+                        new_game->game_state = GAME_OVER;
+                    }
                     if (timer_counter % (60 / GAME_FPS) == 0)
                     {
                         GeneralInterrupt(TIMER, new_game);
@@ -117,11 +142,6 @@ int game_main_loop(WhacAMole *new_game)
             }
         }
     }
-    if (timer_counter / (60 / GAME_FPS) > GAME_DURATION){
-        new_game->game_state = GAME_OVER;
-    }
-
-
     //Unsubscribing all devices
     if (kbd_unsubscribe_int() != OK)
     {
@@ -157,6 +177,9 @@ void GeneralInterrupt(device device, WhacAMole *new_game)
         break;
     case MULTI_PLAYER:
         Multi_Player_interrupt_handler(device, new_game);
+        break;
+     case GAME_OVER:
+        Game_Over_interrupt_handler(device, new_game);
         break;
     case EXIT:
         //TODO
@@ -201,8 +224,8 @@ void Main_Menu_interrupt_handler(device device, WhacAMole *new_game){
         case TIMER:
             draw_menu(new_game->menu);
             draw_cursor(new_game->menu->cursor);
-            //if (new_game->menu->single_player_button->bright_ && mouse_event.type == LB_RELEASED)
-            //    new_game->game_state = PLAYER_SETTINGS;
+            if (new_game->menu->single_player_button->bright_ && mouse_event.type == LB_RELEASED)
+               new_game->game_state = PLAYER_SETTINGS;
             break;
         case KEYBOARD:
             break;
@@ -223,7 +246,7 @@ void Single_Player_interrupt_handler(device device, WhacAMole *new_game)
     struct mouse_ev mouse_event;
     struct packet new_packet;
     Position mole_position; 
-
+    //static int time_duration = 0;
     switch (device)
     {
     case TIMER:
@@ -295,7 +318,12 @@ void Single_Player_interrupt_handler(device device, WhacAMole *new_game)
                 {
                     new_game->moles[mole_index]->time_up = 0;
                     new_game->moles[mole_index]->position = DOWN_HIT_4;
+                    
+                    new_game->player_settings->player->hitted_moles++;
                     break;
+                }
+                else{
+                    new_game->player_settings->player->missed_moles++;
                 }
             }
         }
@@ -308,12 +336,12 @@ void Single_Player_interrupt_handler(device device, WhacAMole *new_game)
         if(pos_mole_hitted != 7){
             if(mouse_event.type == LB_RELEASED){
                 hit_mole(new_game, pos_mole_hitted);
-                new_game->num_moles_hitted++;
+                new_game->player_settings->player->hitted_moles++;
             }
         }
         else if(pos_mole_hitted == 7){
             if(mouse_event.type == LB_RELEASED){
-                new_game->num_moles_missed++;
+                new_game->player_settings->player->missed_moles++;
             }
         }
 
@@ -326,6 +354,31 @@ void Single_Player_interrupt_handler(device device, WhacAMole *new_game)
 void Multi_Player_interrupt_handler(device device, WhacAMole *game)
 {
 }
+
+void Game_Over_interrupt_handler(device device, WhacAMole* new_game){
+    struct mouse_ev mouse_event;
+    struct packet new_packet;
+    switch(device){
+        case TIMER:
+            draw_background();
+            draw_game_over(new_game->game_over, new_game->player_settings->player);
+            draw_cursor(new_game->game_over->cursor);
+
+            break;
+        case KEYBOARD:
+            break;
+        case MOUSE:
+            mouse_parse_packet(packet, &new_packet);
+            mouse_event = mouse_get_event(&new_packet);
+            move_cursor(&new_packet, new_game->game_over->cursor);
+            check_cursor_play_again(new_game->game_over);
+            if (new_game->game_over->main_menu_button->bright_ && mouse_event.type == LB_RELEASED)
+                new_game->player_settings = load_player_settings();
+                new_game->game_state = MAIN_MENU;
+            break;
+    }
+}
+
 void show_timer(unsigned int timer_counter, WhacAMole *new_game) {
     uint8_t seconds = timer_counter / 60; // passing from ticks to seconds
     uint8_t minutes = seconds / 60;
@@ -386,9 +439,9 @@ void draw_counter_moles(WhacAMole * new_game){
 
 void draw_number_moles_missed(WhacAMole * new_game){
     uint32_t* moles_numbers_map = (uint32_t*) new_game->numbers_mole.bytes;
-    int score = new_game->num_moles_missed;
-    int second = score%10;
+    int score = new_game->player_settings->player->missed_moles;
     int first = score/10;
+    int second = score%10;
     int x = new_game->numbers_mole.width;
     if(score == 0){
         vg_draw_part_of_xpm(moles_numbers_map, new_game->numbers_mole, x , 555, x, x+17 , 0, 25);
@@ -404,7 +457,7 @@ void draw_number_moles_missed(WhacAMole * new_game){
 
 void draw_number_moles_hitted(WhacAMole * new_game){
     uint32_t* moles_numbers_map = (uint32_t*) new_game->numbers_mole.bytes;
-    int score = new_game->num_moles_hitted;
+    int score = new_game->player_settings->player->hitted_moles;
     int second = score%10;
     int first = score/10;
     int x = new_game->numbers_mole.width;
@@ -420,6 +473,7 @@ void draw_number_moles_hitted(WhacAMole * new_game){
         vg_draw_part_of_xpm(moles_numbers_map, new_game->numbers_mole, x +17 , 530, x + second*17, x + second*17 +17 , 0, 25);
     }
 }
+
 
 int check_over_mole(WhacAMole * new_game){
     Position mole_position; 
@@ -443,4 +497,103 @@ int check_over_mole(WhacAMole * new_game){
 void hit_mole(WhacAMole * new_game, int mole_index){
     new_game->moles[mole_index]->time_up = 0;
     new_game->moles[mole_index]->position = DOWN_HIT_4;
+}
+
+void draw_game_over_hitted_moles(GameOver * game_over, Player *player){
+    uint32_t* moles_numbers_map = (uint32_t*) game_over->numbers.bytes;
+    int score = player->hitted_moles;
+    int second = score%10;
+    int first = score/10;
+    int x = 500;
+    
+    if(score == 0){
+        vg_draw_part_of_xpm(moles_numbers_map, game_over->numbers, x , 311, x, x+31 , 0, 47);
+    }
+    else if(score < 10){
+        vg_draw_part_of_xpm(moles_numbers_map,game_over->numbers, x , 311 , x + score*31, x + score*31 +31 , 0, 47);
+    }
+    else{
+        vg_draw_part_of_xpm(moles_numbers_map, game_over->numbers, x , 311 , x + first*31, x + first*31 +31 , 0, 47);
+        vg_draw_part_of_xpm(moles_numbers_map, game_over->numbers, x +31 , 311, x + second*17, x + second*31 +31 , 0, 47);
+    }
+}
+
+void draw_game_over_missed_moles(GameOver * game_over, Player *player){
+    uint32_t* moles_numbers_map = (uint32_t*) game_over->numbers.bytes;
+    int score = player->missed_moles;
+    int second = score%10;
+    int first = score/10;
+    int x = 500;
+    if(score == 0){
+        vg_draw_part_of_xpm(moles_numbers_map, game_over->numbers, x , 370, x, x+31 , 0, 47);
+    }
+    else if(score < 10){
+        vg_draw_part_of_xpm(moles_numbers_map, game_over->numbers, x , 370 , x + score*31, x + score*31 +31 , 0, 47);
+    }
+    else{
+        vg_draw_part_of_xpm(moles_numbers_map, game_over->numbers, x , 370 , x + first*31, x + first*31 +31 , 0, 47);
+        vg_draw_part_of_xpm(moles_numbers_map, game_over->numbers, x +31 , 370, x + second*31, x + second*31 +31 , 0, 47);
+    }
+}
+
+void check_cursor_play_again(GameOver *game_over){
+    if(mouse_over(game_over->main_menu_button, game_over-> cursor)){
+        game_over->main_menu_button->bright_ =true;
+    }
+    else if(mouse_over(game_over->ranking_button, game_over-> cursor)){
+        game_over->ranking_button->bright_ =true;
+    }
+    else if(mouse_over(game_over->exit_button, game_over-> cursor)){
+        game_over->exit_button->bright_ =true;
+    }
+    else
+    { 
+        game_over->main_menu_button->bright_ = false;
+        game_over->ranking_button->bright_ = false;
+        game_over->exit_button->bright_ = false;
+    }
+}
+
+void draw_game_over_buttons(GameOver *game_over){
+    if (game_over->main_menu_button->bright_){
+            uint32_t* mn_normal_map = (uint32_t*) game_over->main_menu_button->bright.bytes;
+            vg_draw_xpm(mn_normal_map, game_over->main_menu_button->bright, 300 , 450);
+    }
+    else{
+        uint32_t* mn_bright_map = (uint32_t*) game_over->main_menu_button->normal.bytes;
+        vg_draw_xpm(mn_bright_map, game_over->main_menu_button->normal, 300 , 450);
+    }
+
+    if (game_over->ranking_button->bright_){
+            uint32_t* rk_normal_map = (uint32_t*) game_over->ranking_button->bright.bytes;
+            vg_draw_xpm(rk_normal_map, game_over->ranking_button->bright, 300 , 500);
+    }
+    else{
+        uint32_t* rk_bright_map = (uint32_t*) game_over->ranking_button->normal.bytes;
+        vg_draw_xpm(rk_bright_map, game_over->ranking_button->normal, 300 , 500);
+    }
+
+    if (game_over->exit_button->bright_){
+            uint32_t* ex_normal_map = (uint32_t*) game_over->exit_button->bright.bytes;
+            vg_draw_xpm(ex_normal_map, game_over->exit_button->bright, 300 , 550);
+    }
+    else{
+        uint32_t* ex_bright_map = (uint32_t*) game_over->exit_button->normal.bytes;
+        vg_draw_xpm(ex_bright_map, game_over->exit_button->normal, 300 , 550);
+    }
+}
+void draw_game_over(GameOver * game_over, Player *player){
+    uint32_t *game_over_map = (uint32_t *)game_over->logo_game_over.bytes;
+    vg_draw_xpm(game_over_map,game_over->logo_game_over, 110, 230);
+
+    uint32_t *hitted_moles_map = (uint32_t *)game_over->hitted_moles.bytes;
+    vg_draw_xpm(hitted_moles_map,game_over->hitted_moles, 110, 310);
+
+    uint32_t *missed_moles_map = (uint32_t *)game_over->missed_moles.bytes;
+    vg_draw_xpm(missed_moles_map,game_over->missed_moles, 110, 370);
+
+    draw_game_over_missed_moles(game_over, player);
+    draw_game_over_hitted_moles(game_over, player);
+
+    draw_game_over_buttons(game_over);
 }

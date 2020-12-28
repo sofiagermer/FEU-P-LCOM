@@ -4,6 +4,16 @@
 #include <Sprites/moles_hitted.xpm>
 #include <Sprites/moles_missed.xpm>
 #include <Sprites/numbers_moles.xpm>
+#include <Sprites/game_over.xpm>
+#include <Sprites/game_over_missed_moles.xpm>
+#include <Sprites/game_over_hitted_moles.xpm>
+#include <Sprites/game_over_numbers.xpm>
+#include <Sprites/game_over_main_menu.xpm>
+#include <Sprites/game_over_main_menu_bright.xpm>
+#include <Sprites/game_over_ranking.xpm>
+#include <Sprites/game_over_ranking_bright.xpm>
+#include <Sprites/game_over_exit.xpm>
+#include <Sprites/game_over_exit_bright.xpm>
 #include <Sprites/table.xpm>
 #include "i8042.h"
 #include "i8254.h"
@@ -20,6 +30,19 @@ typedef enum {MAIN_MENU, PLAYER_SETTINGS, SINGLE_PLAYER, MULTI_PLAYER, GAME_OVER
 typedef enum {TIMER, KEYBOARD, MOUSE} device;
 
 typedef struct {
+	xpm_image_t logo_game_over;
+	xpm_image_t numbers;
+	xpm_image_t missed_moles;
+	xpm_image_t hitted_moles;
+	Cursor *cursor;
+	Button *main_menu_button;
+	Button *ranking_button;
+	Button *exit_button;
+
+
+} GameOver;
+
+typedef struct {
 	xpm_image_t numbers;
 	xpm_image_t numbers_mole;
 	xpm_image_t moles_missed;
@@ -31,15 +54,13 @@ typedef struct {
 	Menu* menu;
 	Player_Settings* player_settings;
 	Cursor* cursor;
+	GameOver* game_over;
 	game_state game_state;
-
-	//PARA O PLAYER
-	int num_moles_hitted;
-	int num_moles_missed;
 
 } WhacAMole;
 
 WhacAMole* load_game();
+GameOver* load_game_over();
 
 int game_main_loop(WhacAMole* game);
 
@@ -48,7 +69,7 @@ void Main_Menu_interrupt_handler(device device, WhacAMole *new_game);
 void Player_Settings_interrupt_handler(device device, WhacAMole *new_game);
 void Single_Player_interrupt_handler(device device, WhacAMole* game);
 void Multi_Player_interrupt_handler(device device, WhacAMole* game);
-//void Game_Over_interrupt_handler(device device, WhacAMole* game);
+void Game_Over_interrupt_handler(device device, WhacAMole* game);
 
 void show_timer(unsigned int timer_counter, WhacAMole *game);
 
@@ -63,4 +84,10 @@ void draw_table(WhacAMole * new_game);
 void draw_counter_moles(WhacAMole * new_game);
 void draw_number_moles_missed(WhacAMole * new_game);
 void draw_number_moles_hitted(WhacAMole * new_game);
+
+void check_cursor_play_again(GameOver *game_over);
+void draw_game_over(GameOver * game_over, Player *player);
+void draw_game_over_missed_moles(GameOver *game_over, Player *Player);
+void draw_game_over_hitted_moles(GameOver *game_over, Player *Player);
+void draw_game_over_buttons(GameOver *game_over);
 

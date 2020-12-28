@@ -33,6 +33,8 @@ typedef enum {NOT_SELECTED, SELECTED} button_state;
 typedef struct  {
     xpm_image_t avatar;
     int x,y;
+    int missed_moles;
+	int hitted_moles;
     //char name[10];
 } Player;
 
