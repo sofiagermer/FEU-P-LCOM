@@ -15,7 +15,9 @@ typedef struct{
     uint32_t second;
 } Time;
 
-void bcd_to_bin(uint32_t* bcd);
+void wait_valid_rtc();
+
+void bcd_to_dec(uint32_t* bcd);
 
 bool updating_rtc();
 
@@ -31,5 +33,20 @@ Date get_date();
 
 Time get_time();
 
+int (enable_rtc_int)();
+
+int (disable_rtc_int)();
+
+int enable_rtc_UI();
+
+int disable_rtc_UI();
+
+int (rtc_subscribe_int)(uint8_t *bit_no);
+
+int (rtc_unsubscribe_int)();
+
+void (rtc_int_handler)();
+
+void rtc_start();
 
 #endif

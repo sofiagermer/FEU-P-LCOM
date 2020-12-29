@@ -15,6 +15,8 @@
 #include <Sprites/game_over_exit.xpm>
 #include <Sprites/game_over_exit_bright.xpm>
 #include <Sprites/table.xpm>
+#include <Sprites/good_bye_message.xpm>
+#include <Sprites/good_bye_mole.xpm>
 #include "i8042.h"
 #include "i8254.h"
 #include "keyboard.h"
@@ -43,6 +45,12 @@ typedef struct {
 } GameOver;
 
 typedef struct {
+	xpm_image_t logo;
+	xpm_image_t mole;
+	uint16_t x_mole;
+} GoodBye;
+
+typedef struct {
 	xpm_image_t numbers;
 	xpm_image_t numbers_mole;
 	xpm_image_t moles_missed;
@@ -55,12 +63,15 @@ typedef struct {
 	Player_Settings* player_settings;
 	Cursor* cursor;
 	GameOver* game_over;
+	GoodBye* good_bye;
 	game_state game_state;
+	bool running;
 
 } WhacAMole;
 
 WhacAMole* load_game();
 GameOver* load_game_over();
+GoodBye *load_good_bye();
 
 int game_main_loop(WhacAMole* game);
 
@@ -70,6 +81,7 @@ void Player_Settings_interrupt_handler(device device, WhacAMole *new_game);
 void Single_Player_interrupt_handler(device device, WhacAMole* game);
 void Multi_Player_interrupt_handler(device device, WhacAMole* game);
 void Game_Over_interrupt_handler(device device, WhacAMole* game);
+void Exit_interrupt_handler(device device, WhacAMole* new_game);
 
 void show_timer(unsigned int timer_counter, WhacAMole *game);
 
@@ -91,3 +103,5 @@ void draw_game_over_missed_moles(GameOver *game_over, Player *Player);
 void draw_game_over_hitted_moles(GameOver *game_over, Player *Player);
 void draw_game_over_buttons(GameOver *game_over);
 
+void draw_good_bye_message(GoodBye *good_bye);
+void draw_good_bye_mole(GoodBye *good_bye);

@@ -3,9 +3,11 @@
 
 #include <lcom/lcf.h>
 
-
+#define FAIL 1
 
 #define RTC_IRQ 8
+#define UIE BIT(4)
+#define RTC_UF  BIT(4)
 
 #define RTC_ADDR_REG 0x70
 #define RTC_DATA_REG 0x71
@@ -25,6 +27,8 @@
 #define MONTH_REG 8
 #define YEAR_REG 9
 
+#define LIMIT_HOUR 0x12
+#define OFFSET_FOR_PM_TIME 0x80
 
 
 #endif

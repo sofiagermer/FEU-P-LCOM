@@ -14,6 +14,8 @@ extern uint8_t scan_code;
 extern bool mouse_last_byte_of_packet;
 extern uint8_t packet[];
 
+static unsigned int exit_time;
+
 WhacAMole *load_game()
 {
     WhacAMole *new_game = (WhacAMole *)malloc(sizeof(WhacAMole));
@@ -36,12 +38,14 @@ WhacAMole *load_game()
     new_game->player_settings = load_player_settings();
     new_game->cursor = load_cursor(cursor_xpm);
     new_game->game_over = load_game_over();
+    new_game->good_bye = load_good_bye();
     new_game->game_state = MAIN_MENU; 
+    new_game->running = true;
 
-
-    //para o player
     new_game->player_settings->player->missed_moles = 0;
     new_game->player_settings->player->hitted_moles = 0;
+
+    new_game->good_bye->x_mole = 0;
     return new_game;
 }
 
@@ -64,6 +68,19 @@ GameOver *load_game_over()
     game_over->ranking_button = load_button(300, 500, game_over_ranking_xpm, game_over_ranking_bright_xpm);
     game_over->exit_button = load_button(300, 550, game_over_exit_xpm, game_over_exit_bright_xpm);
     return game_over;
+}
+
+GoodBye *load_good_bye(){
+    GoodBye *good_bye = (GoodBye *)malloc(sizeof(GoodBye));
+    xpm_image_t img;
+
+    xpm_load(good_bye_message_xpm, XPM_8_8_8_8, &img);
+	good_bye->logo = img;
+    xpm_load(good_bye_mole_xpm, XPM_8_8_8_8, &img);
+	good_bye->mole = img;
+
+    good_bye->x_mole = 0;
+    return good_bye;
 }
 
 int game_main_loop(WhacAMole *new_game)
@@ -89,7 +106,7 @@ int game_main_loop(WhacAMole *new_game)
         return 1;
     }
 
-    while (new_game->game_state != EXIT )
+    while (new_game->running)
     {
         if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0)
         {
@@ -182,7 +199,7 @@ void GeneralInterrupt(device device, WhacAMole *new_game)
         Game_Over_interrupt_handler(device, new_game);
         break;
     case EXIT:
-        //TODO
+        Exit_interrupt_handler(device, new_game);
         break;
     default:
         break;
@@ -234,6 +251,10 @@ void Main_Menu_interrupt_handler(device device, WhacAMole *new_game){
             mouse_event = mouse_get_event(&new_packet);
             if (new_game->menu->single_player_button->bright_ && mouse_event.type == LB_RELEASED)
                 new_game->game_state = PLAYER_SETTINGS;
+            else if (new_game->menu->exit_button->bright_ && mouse_event.type == LB_RELEASED){
+                exit_time = timer_counter + 180;
+                new_game->game_state = EXIT;
+            }
             move_cursor(&new_packet, new_game->menu->cursor);
             check_cursor_over_button(new_game->menu);
             break;
@@ -372,9 +393,36 @@ void Game_Over_interrupt_handler(device device, WhacAMole* new_game){
             mouse_event = mouse_get_event(&new_packet);
             move_cursor(&new_packet, new_game->game_over->cursor);
             check_cursor_play_again(new_game->game_over);
-            if (new_game->game_over->main_menu_button->bright_ && mouse_event.type == LB_RELEASED)
+            if (new_game->game_over->main_menu_button->bright_ && mouse_event.type == LB_RELEASED){
                 new_game->player_settings = load_player_settings();
                 new_game->game_state = MAIN_MENU;
+            }
+            if (new_game->game_over->exit_button->bright_ && mouse_event.type == LB_RELEASED){
+                exit_time = timer_counter + 180;
+                new_game->game_state = EXIT;
+            }
+            break;
+    }
+}
+void Exit_interrupt_handler(device device, WhacAMole* new_game){
+    switch(device){
+        case TIMER:
+            if(exit_time > timer_counter){
+                draw_background();
+                draw_good_bye_message(new_game->good_bye);
+                if(timer_counter % 5 == 0){
+                    new_game->good_bye->x_mole += 18;
+            
+                }
+                draw_good_bye_mole(new_game->good_bye);
+            }
+            else{
+                new_game->running = false;
+            }
+            break;
+        case KEYBOARD:
+            break;
+        case MOUSE:
             break;
     }
 }
@@ -597,3 +645,16 @@ void draw_game_over(GameOver * game_over, Player *player){
 
     draw_game_over_buttons(game_over);
 }
+
+void draw_good_bye_message(GoodBye *good_bye){
+    uint32_t *good_bye_map = (uint32_t *)good_bye->logo.bytes;
+    vg_draw_xpm(good_bye_map,good_bye->logo, 0, 230);
+
+}
+
+void draw_good_bye_mole(GoodBye *good_bye){
+    uint32_t *good_bye_mole = (uint32_t *)good_bye->mole.bytes;
+    vg_draw_xpm(good_bye_mole,good_bye->mole, good_bye->x_mole, 450);
+}
+
+
