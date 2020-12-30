@@ -8,12 +8,6 @@ char kbd_manager(uint8_t scanCode) {
   char letter;
 
   switch (scanCode) {
-    case ENTER_BREAK:
-      letter = '1';
-      break;
-    case ESC_BREAK:
-      letter = '2';
-      break;
     case A_BREAK:
       letter = 'A';
       break;

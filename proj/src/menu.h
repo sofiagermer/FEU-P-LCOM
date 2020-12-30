@@ -1,18 +1,19 @@
-
 #include <lcom/lcf.h>
 #include <Sprites/background.xpm>
 #include <Sprites/logo.xpm>
-#include <Sprites/cursor.xpm>
-#include <Sprites/Buttons_img/normal/exit_normal.xpm>
-#include <Sprites/Buttons_img/active/exit_active.xpm>
 #include <Sprites/Buttons_img/normal/singleplayer_normal.xpm>
 #include <Sprites/Buttons_img/active/singleplayer_active.xpm>
 #include <Sprites/Buttons_img/normal/multiplayer_normal.xpm>
 #include <Sprites/Buttons_img/active/multiplayer_active.xpm>
+#include <Sprites/Buttons_img/normal/leaderboard_normal.xpm>
+#include <Sprites/Buttons_img/active/leaderboard_active.xpm>
+#include <Sprites/Buttons_img/normal/instructions_normal.xpm>
+#include <Sprites/Buttons_img/active/instructions_active.xpm>
+#include <Sprites/Buttons_img/normal/exit_normal.xpm>
+#include <Sprites/Buttons_img/active/exit_active.xpm>
 
-#include <vd_card.h>
-#include <mouse.h>
-#include <state_machine.h>
+#include "state_machine.h"
+#include "button.h"
 
 /**
  *  @brief Struct button_t. Acts as class BUTTON.
@@ -28,44 +29,23 @@ typedef enum_click{
     no_click = -1
 }click_t; */
 
-typedef struct {
-    xpm_image_t normal;
-    xpm_image_t bright;
-    bool bright_;
-    uint16_t xi;
-    uint16_t yi;
-    uint16_t xf;
-    uint16_t yf;
-} Button;
 
-typedef struct{
-    xpm_image_t cursor_image;
-    uint16_t x;
-    uint16_t y;
-} Cursor;
 
 typedef struct {
     xpm_image_t logo;         
-    Button *single_player_button;  
-    Button *multi_player_button; 
-    Button *exit_button;       
+    Button** buttons;
+    int num_buttons;
     Cursor *cursor;              
 } Menu;
 
 void load_background();
-
-
-Button *load_button(uint16_t xi, uint16_t yi, xpm_row_t *normal, xpm_row_t *bright);
 Menu *load_menu();
 Cursor *load_cursor(xpm_row_t *img_cursor);
 
 void draw_cursor(Cursor *cursor);
 void draw_background();
 void draw_logo(Menu *menu);
-void draw_buttons(Menu *menu);
 void draw_menu(Menu *menu);
 
 int mouse_over(Button *button, Cursor *cursor);
 void move_cursor(struct packet *packet, Cursor *cursor);
-void check_cursor_over_button(Menu *menu);
-

@@ -93,6 +93,7 @@
 
 #define ESC_BREAK             0x81
 #define ENTER_BREAK           0x9C
+#define BACK_SPACE_BREAK      0x8E
 #define A_BREAK               0x9E
 #define B_BREAK               0xB0
 #define C_BREAK               0xAE

@@ -20,17 +20,14 @@
 
 #include <Sprites/Buttons_img/normal/name_box_normal.xpm>
 #include <Sprites/Buttons_img/active/name_box_active.xpm>
-
 #include <Sprites/Buttons_img/normal/arrow_left_normal.xpm>
 #include <Sprites/Buttons_img/active/arrow_left_active.xpm>
-
 #include <Sprites/Buttons_img/normal/arrow_right_normal.xpm>
 #include <Sprites/Buttons_img/active/arrow_right_active.xpm>
-
 #include <Sprites/Buttons_img/normal/start_normal.xpm>
 #include <Sprites/Buttons_img/active/start_active.xpm>
 
-#include "menu.h"
+#include "button.h"
 
 typedef enum {NOT_SELECTED, SELECTED} button_state;
 
@@ -60,17 +57,10 @@ typedef struct  {
     xpm_image_t font;
     Player* player;
     Avatar* avatars[4];
-    Button* left_arrow;
-    Button* right_arrow;
-    Button* start;
+    Button** buttons;
+    int num_buttons;
     Cursor* cursor;
 } Player_Settings;
-
-
-
-//Button *load_button(uint16_t xi, uint16_t yi, xpm_row_t *normal, xpm_row_t *bright);
-
-//Cursor *load_cursor(xpm_row_t *img_cursor);
 
 Player* load_player(Avatar* default_avatar);
 
@@ -87,15 +77,7 @@ void draw_name_lenght_warning(Player_Settings* player_settings);
 
 void draw_avatars(Avatar* avatars[]);
 
-void draw_buttons__(Player_Settings* player_settings);
-
 void draw_menu_player_settings(Player_Settings* player_settings);
-
-void draw_cursor(Cursor *cursor);
-
-int mouse_over(Button *button, Cursor *cursor);
-
-void move_cursor__(struct packet *packet, Player_Settings* player_settings);
 
 void move_left_avatar(Player_Settings* player_settings);
 

@@ -8,10 +8,7 @@
 #include <Sprites/game_over_missed_moles.xpm>
 #include <Sprites/game_over_hitted_moles.xpm>
 #include <Sprites/game_over_numbers.xpm>
-#include <Sprites/Buttons_img/normal/main_menu_normal.xpm>
-#include <Sprites/Buttons_img/active/main_menu_active.xpm>
-#include <Sprites/Buttons_img/normal/leaderboard_normal.xpm>
-#include <Sprites/Buttons_img/active/leaderboard_active.xpm>
+
 
 #include <Sprites/table.xpm>
 #include <Sprites/good_bye_message.xpm>
@@ -19,14 +16,17 @@
 #include "i8042.h"
 #include "i8254.h"
 #include "keyboard.h"
-#include "mole.h"
-//#include "menu.h"
 #include "kbd_manager.h"
 #include "mouse.h"
 #include "state_machine.h"
+#include "vd_card.h"
 #include "rtc.h"
+#include "mole.h"
+#include "button.h"
+//#include "menu.h"
 //#include "Player.h"
 #include "score.h"
+
 
 typedef enum {MAIN_MENU, PLAYER_SETTINGS, SINGLE_PLAYER, MULTI_PLAYER, GAME_OVER, LEADERBOARD, EXIT} game_state;
 typedef enum {TIMER, KEYBOARD, MOUSE} device;
@@ -37,9 +37,8 @@ typedef struct {
 	xpm_image_t missed_moles;
 	xpm_image_t hitted_moles;
 	Cursor *cursor;
-	Button *main_menu_button;
-	Button *ranking_button;
-	Button *exit_button;
+	Button** buttons;
+    int num_buttons;
 } GameOver;
 
 typedef struct {
@@ -65,7 +64,6 @@ typedef struct {
 	GoodBye* good_bye;
 	game_state game_state;
 	bool running;
-
 } WhacAMole;
 
 WhacAMole* load_game();
@@ -97,7 +95,6 @@ void draw_counter_moles(WhacAMole * new_game);
 void draw_number_moles_missed(WhacAMole * new_game);
 void draw_number_moles_hitted(WhacAMole * new_game);
 
-void check_cursor_play_again(GameOver *game_over);
 void draw_game_over(GameOver * game_over, Player *player);
 void draw_game_over_missed_moles(GameOver *game_over, Player *Player);
 void draw_game_over_hitted_moles(GameOver *game_over, Player *Player);

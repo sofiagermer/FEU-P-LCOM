@@ -81,7 +81,9 @@ Leaderboard *load_leaderboard()
     leaderboard->score_records[4].player_name_size = 7;
     leaderboard->score_records[4].accuracy = 40;
 
-    leaderboard->close = load_button(CLOSE_STEP_FROM_X, CLOSE_STEP_FROM_Y, score_close_normal_xpm, score_close_active_xpm);
+    leaderboard->num_buttons = 1;
+    leaderboard->buttons = (Button **)malloc(sizeof(Button *) * leaderboard->num_buttons);
+    leaderboard->buttons[0] = load_button(CLOSE_STEP_FROM_X, CLOSE_STEP_FROM_Y, score_close_normal_xpm, score_close_active_xpm);
     leaderboard->cursor = load_cursor(cursor_xpm);
 
     return leaderboard;
@@ -123,16 +125,17 @@ void draw_player_names(Leaderboard *leaderboard)
     {
         Score_Record *curr_score_record = &leaderboard->score_records[i];
         if (curr_score_record->player_name_size != 0)
-            draw_player_name(leaderboard->font, NAME_STEP_FROM_X, i*NAME_STEP_FROM_LINE+NAME_STEP_FROM_Y, curr_score_record->player_name, curr_score_record->player_name_size);
+            draw_player_name(leaderboard->font, NAME_STEP_FROM_X, i * NAME_STEP_FROM_LINE + NAME_STEP_FROM_Y, curr_score_record->player_name, curr_score_record->player_name_size);
     }
 }
 
 void draw_player_scores(Leaderboard *leaderboard)
 {
-    for (int i = 0; i < leaderboard->max_score_records; i++) {
+    for (int i = 0; i < leaderboard->max_score_records; i++)
+    {
         Score_Record *curr_score_record = &leaderboard->score_records[i];
         if (curr_score_record->player_name_size != 0)
-            draw_player_score(leaderboard->numbers,SCORE_STEP_FROM_X, i*SCORE_STEP_FROM_LINE+SCORE_STEP_FROM_Y, curr_score_record->accuracy);
+            draw_player_score(leaderboard->numbers, SCORE_STEP_FROM_X, i * SCORE_STEP_FROM_LINE + SCORE_STEP_FROM_Y, curr_score_record->accuracy);
     }
 }
 
@@ -148,128 +151,94 @@ void draw_player_score(xpm_image_t font, int xi, int yi, int score)
     mid_score_number = ((score / 10) % 10) + 2;
     left_score_number = (score / 100) + 2;
 
-    vg_draw_part_of_xpm(font_pixmap, font, xi, yi, number_width, 2*number_width , 0, number_height); //Percentage symbol
-    vg_draw_part_of_xpm(font_pixmap, font, xi-number_width, yi, right_score_number*number_width, (right_score_number+1)*number_width, 0, number_height);
+    vg_draw_part_of_xpm(font_pixmap, font, xi, yi, number_width, 2 * number_width, 0, number_height); //Percentage symbol
+    vg_draw_part_of_xpm(font_pixmap, font, xi - number_width, yi, right_score_number * number_width, (right_score_number + 1) * number_width, 0, number_height);
 
     if ((mid_score_number - 2) == 0 && (left_score_number - 2) != 0)
     {
-        vg_draw_part_of_xpm(font_pixmap, font, xi-2*number_width, yi, mid_score_number * number_width, (mid_score_number+1)*number_width, 0, number_height);
-        vg_draw_part_of_xpm(font_pixmap, font, xi-number_width*3, yi, left_score_number*number_width, (left_score_number+1)*number_width, 0, number_height);
+        vg_draw_part_of_xpm(font_pixmap, font, xi - 2 * number_width, yi, mid_score_number * number_width, (mid_score_number + 1) * number_width, 0, number_height);
+        vg_draw_part_of_xpm(font_pixmap, font, xi - number_width * 3, yi, left_score_number * number_width, (left_score_number + 1) * number_width, 0, number_height);
     }
     else if ((mid_score_number - 2) != 0)
     {
-        vg_draw_part_of_xpm(font_pixmap, font, xi-2*number_width, yi, mid_score_number*number_width, (mid_score_number+1)*number_width, 0, number_height);
+        vg_draw_part_of_xpm(font_pixmap, font, xi - 2 * number_width, yi, mid_score_number * number_width, (mid_score_number + 1) * number_width, 0, number_height);
     }
 }
 
 void draw_buttons____(Leaderboard *leaderboard)
 {
-    if (leaderboard->close->bright_)
+    for (int i = 0; i < leaderboard->num_buttons; i++)
     {
-        uint32_t *close_bright_map = (uint32_t *)leaderboard->close->bright.bytes;
-        vg_draw_xpm(close_bright_map, leaderboard->close->bright, leaderboard->close->xi, leaderboard->close->yi);
-    }
-    else
-    {
-        uint32_t *close_normal_map = (uint32_t *)leaderboard->close->normal.bytes;
-        vg_draw_xpm(close_normal_map, leaderboard->close->normal, leaderboard->close->xi, leaderboard->close->yi);
-    }
-}
-
-void move_cursor_____(struct packet *packet, Leaderboard *leaderboard)
-{
-    //Update x position
-    leaderboard->cursor->x += packet->delta_x;
-    if (leaderboard->cursor->x > 790)
-    {
-        leaderboard->cursor->x = 790 - leaderboard->cursor->cursor_image.width;
-    }
-    else if (leaderboard->cursor->x < 0)
-    {
-        leaderboard->cursor->x = 0;
-    }
-
-    //Update y position
-    leaderboard->cursor->y -= packet->delta_y;
-    if (leaderboard->cursor->y > 590)
-    {
-        leaderboard->cursor->y = 590 - leaderboard->cursor->cursor_image.height;
-    }
-    else if (leaderboard->cursor->y < 0)
-    {
-        leaderboard->cursor->y = 0;
-    }
-
-    if (mouse_over(leaderboard->close, leaderboard->cursor))
-        leaderboard->close->bright_ = true;
-    else
-    {
-        leaderboard->close->bright_ = false;
+        draw_button(leaderboard->buttons[i]);
     }
 }
 
 
-void save_scores(Leaderboard* leaderboard)
+void save_scores(Leaderboard *leaderboard)
 {
-  FILE* leaderboard_file;
-  leaderboard_file = fopen("/home/lcom/labs/proj/src/leaderboard.txt", "w");
+    FILE *leaderboard_file;
+    leaderboard_file = fopen("/home/lcom/labs/proj/src/leaderboard.txt", "w");
 
-  if (leaderboard_file == NULL) //SEE LATER
-    return;
+    if (leaderboard_file == NULL) //SEE LATER
+        return;
 
-  for (int i = 0; i < leaderboard->max_score_records; i++) {
-    Score_Record* curr_score_record = &leaderboard->score_records[i];
-    fprintf(leaderboard_file, "%s\n", curr_score_record->player_name);
+    for (int i = 0; i < leaderboard->max_score_records; i++)
+    {
+        Score_Record *curr_score_record = &leaderboard->score_records[i];
+        fprintf(leaderboard_file, "%s\n", curr_score_record->player_name);
 
-    fprintf(leaderboard_file, "%d\n", curr_score_record->accuracy);
+        fprintf(leaderboard_file, "%d\n", curr_score_record->accuracy);
 
-    fprintf(leaderboard_file, "%02d/%02d/%02d\n", curr_score_record->date.year, curr_score_record->date.month, curr_score_record->date.day);
-    fprintf(leaderboard_file, "%02d:%02d:%02d\n", curr_score_record->time.hour, curr_score_record->time.minute, curr_score_record->time.second);
-  }
+        fprintf(leaderboard_file, "%02d/%02d/%02d\n", curr_score_record->date.year, curr_score_record->date.month, curr_score_record->date.day);
+        fprintf(leaderboard_file, "%02d:%02d:%02d\n", curr_score_record->time.hour, curr_score_record->time.minute, curr_score_record->time.second);
+    }
 
-  fclose(leaderboard_file);
+    fclose(leaderboard_file);
 }
 
-void load_scores(Leaderboard* leaderboard)
+void load_scores(Leaderboard *leaderboard)
 {
-  FILE* leaderboard_file;
-  leaderboard_file = fopen("/home/lcom/labs/proj/src/leaderboard.txt", "r");
+    FILE *leaderboard_file;
+    leaderboard_file = fopen("/home/lcom/labs/proj/src/leaderboard.txt", "r");
 
-  if (leaderboard_file == NULL) {
-      for (int i = 0; i < leaderboard->max_score_records; i++) {
-        leaderboard->score_records[i].accuracy = 0;
-        leaderboard->score_records[i].player_name_size = 0;
-        leaderboard->score_records[i].player_name[0] = ' ';
+    if (leaderboard_file == NULL)
+    {
+        for (int i = 0; i < leaderboard->max_score_records; i++)
+        {
+            leaderboard->score_records[i].accuracy = 0;
+            leaderboard->score_records[i].player_name_size = 0;
+            leaderboard->score_records[i].player_name[0] = ' ';
+        }
+        return;
     }
-    return;
-  }
 
-  int* year = NULL;
-  int* month = NULL;
-  int* day = NULL;
-  int* hour = NULL;
-  int* minute = NULL;
-  int* second = NULL;
+    int *year = NULL;
+    int *month = NULL;
+    int *day = NULL;
+    int *hour = NULL;
+    int *minute = NULL;
+    int *second = NULL;
 
-  for (int i = 0; i < leaderboard->max_score_records; i++) {
-    Score_Record* curr_score_record = &leaderboard->score_records[i];
+    for (int i = 0; i < leaderboard->max_score_records; i++)
+    {
+        Score_Record *curr_score_record = &leaderboard->score_records[i];
 
-    fgets(curr_score_record->player_name, curr_score_record->player_name_size, leaderboard_file);
+        fgets(curr_score_record->player_name, curr_score_record->player_name_size, leaderboard_file);
 
-    fscanf(leaderboard_file, "%d", &curr_score_record->accuracy);
-        
-    fscanf(leaderboard_file, "%02d/%02d/%02d\n", year, month, day);
-    curr_score_record->date.year = *year;
-    curr_score_record->date.month = *month;
-    curr_score_record->date.day = *day;
+        fscanf(leaderboard_file, "%d", &curr_score_record->accuracy);
 
-    fscanf(leaderboard_file, "%02d:%02d:%02d\n", hour, minute, second);
-    curr_score_record->time.hour = *hour;
-    curr_score_record->time.minute = *minute;
-    curr_score_record->time.second = *second;
-  }
+        fscanf(leaderboard_file, "%02d/%02d/%02d\n", year, month, day);
+        curr_score_record->date.year = *year;
+        curr_score_record->date.month = *month;
+        curr_score_record->date.day = *day;
 
-  fclose(leaderboard_file);
+        fscanf(leaderboard_file, "%02d:%02d:%02d\n", hour, minute, second);
+        curr_score_record->time.hour = *hour;
+        curr_score_record->time.minute = *minute;
+        curr_score_record->time.second = *second;
+    }
+
+    fclose(leaderboard_file);
 }
 /*
 bool add_new_score(Leaderboard* leaderboard, Player* player) {

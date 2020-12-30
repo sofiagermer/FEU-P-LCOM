@@ -6,10 +6,8 @@
 #include <Sprites/font_small.xpm>
 #include <Sprites/score_numbers.xpm>
 
-#include <Sprites/Buttons_img/normal/score_close_normal.xpm>
-#include <Sprites/Buttons_img/active/score_close_active.xpm>
-
 #include "Player.h"
+#include "vd_card.h"
 #include "rtc.h"
 
 
@@ -42,7 +40,8 @@ typedef struct  {
     xpm_image_t table;
     xpm_image_t font;
     xpm_image_t numbers;
-    Button* close;
+    Button** buttons;
+    int num_buttons;
     Cursor* cursor;
     Score_Record* score_records;
     int max_name_length;

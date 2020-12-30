@@ -103,10 +103,13 @@ Player_Settings *load_player_settings() {
     
     player_settings->avatars[3]->state = SELECTED;
 
-    player_settings->left_arrow = load_button(275, 300, arrow_left_normal_xpm, arrow_left_active_xpm);
-    player_settings->right_arrow = load_button(450, 300, arrow_right_normal_xpm, arrow_right_active_xpm);
-    player_settings->start = load_button(677, 415, start_normal_xpm, start_active_xpm);
-    player_settings->name_box = load_button(0, 375, name_box_normal_xpm, name_box_active_xpm);
+    player_settings->num_buttons = 4;
+    player_settings->buttons = (Button**) malloc(sizeof(Button*) * player_settings->num_buttons);
+    player_settings->buttons[0] = load_button(275, 300, arrow_left_normal_xpm, arrow_left_active_xpm);
+    player_settings->buttons[1] = load_button(450, 300, arrow_right_normal_xpm, arrow_right_active_xpm);
+    player_settings->buttons[2] = load_button(0, 375, name_box_normal_xpm, name_box_active_xpm);
+    player_settings->buttons[3] = load_button(677, 415, start_normal_xpm, start_active_xpm);
+    
 
     player_settings->cursor = load_cursor(cursor_xpm);
 
@@ -169,41 +172,9 @@ void draw_avatars(Avatar* avatars[4]) {
 }
 
 void draw_buttons__(Player_Settings* player_settings) {
-    if (player_settings->left_arrow->bright_){
-        uint32_t* left_arrow_bright_map = (uint32_t*) player_settings->left_arrow->bright.bytes;
-        vg_draw_xpm(left_arrow_bright_map, player_settings->left_arrow->bright, player_settings->left_arrow->xi , player_settings->left_arrow->yi);
-    }
-    else{
-        uint32_t* left_arrow_normal_map = (uint32_t*) player_settings->left_arrow->normal.bytes;
-        vg_draw_xpm(left_arrow_normal_map, player_settings->left_arrow->normal, player_settings->left_arrow->xi , player_settings->left_arrow->yi);
-    }
-
-    if (player_settings->right_arrow->bright_){
-        uint32_t* right_arrow_bright_map = (uint32_t*) player_settings->right_arrow->bright.bytes;
-        vg_draw_xpm(right_arrow_bright_map, player_settings->right_arrow->bright, player_settings->right_arrow->xi , player_settings->right_arrow->yi);
-    }
-    else{
-        uint32_t* right_arrow_normal_map = (uint32_t*) player_settings->right_arrow->normal.bytes;
-        vg_draw_xpm(right_arrow_normal_map, player_settings->right_arrow->normal, player_settings->right_arrow->xi , player_settings->right_arrow->yi);
-    }
-
-    if (player_settings->start->bright_){
-        uint32_t* start_bright_map = (uint32_t*) player_settings->start->bright.bytes;
-        vg_draw_xpm(start_bright_map, player_settings->start->bright, player_settings->start->xi , player_settings->start->yi);
-    }
-    else{
-        uint32_t* start_normal_map = (uint32_t*) player_settings->start->normal.bytes;
-        vg_draw_xpm(start_normal_map, player_settings->start->normal, player_settings->start->xi , player_settings->start->yi);
-    }
-
-    if (player_settings->name_box->bright_){
-        uint32_t* name_box_bright_map = (uint32_t*) player_settings->name_box->bright.bytes;
-        vg_draw_xpm(name_box_bright_map, player_settings->name_box->bright, player_settings->name_box->xi , player_settings->name_box->yi);
-    }
-    else{
-        uint32_t* start_normal_map = (uint32_t*) player_settings->name_box->normal.bytes;
-        vg_draw_xpm(start_normal_map, player_settings->name_box->normal, player_settings->name_box->xi , player_settings->name_box->yi);
-    }
+  for (int i = 0; i < player_settings->num_buttons; i++) {
+    draw_button(player_settings->buttons[i]);
+  }
 }
 
 /*
@@ -232,7 +203,7 @@ int mouse_over(Button *button, Cursor *cursor) {
 }*/
 
 
-void move_cursor__(struct packet *packet, Player_Settings* player_settings) {
+/*void move_cursor__(struct packet *packet, Player_Settings* player_settings) {
   //Update x position
   player_settings->cursor->x += packet->delta_x;
   if (player_settings->cursor->x > 790) {
@@ -262,7 +233,7 @@ void move_cursor__(struct packet *packet, Player_Settings* player_settings) {
     player_settings->right_arrow->bright_ = false;
     player_settings->start->bright_ = false;
   }
-}
+}*/
 
 void move_left_avatar(Player_Settings* player_settings) {
   if (player_settings->avatars[0]->state != SELECTED) {
