@@ -249,26 +249,26 @@ void Player_Settings_interrupt_handler(device device, WhacAMole *new_game)
     case MOUSE:
         mouse_parse_packet(packet, &new_packet);
         mouse_event = mouse_get_event(&new_packet);
-        if (mouse_over(new_game->player_settings->buttons[0], new_game->player_settings->cursor) && mouse_event.type == LB_RELEASED)
+        if (mouse_over(new_game->player_settings->buttons[0], new_game->cursor) && mouse_event.type == LB_RELEASED)
         {
             move_left_avatar(new_game->player_settings);
         }
-        else if (mouse_over(new_game->player_settings->buttons[1], new_game->player_settings->cursor) && mouse_event.type == LB_RELEASED)
+        else if (mouse_over(new_game->player_settings->buttons[1], new_game->cursor) && mouse_event.type == LB_RELEASED)
         {
             move_right_avatar(new_game->player_settings);
         }
-        else if (mouse_over(new_game->player_settings->buttons[2], new_game->player_settings->cursor) && mouse_event.type == LB_RELEASED)
+        else if (mouse_over(new_game->player_settings->buttons[2], new_game->cursor) && mouse_event.type == LB_RELEASED)
         {
             if (new_game->player_settings->player->name[new_game->player_settings->player->name_max_size - 1] != ' ')
                 new_game->player_settings->name_maximum_length = true;
         }
-        else if (mouse_over(new_game->player_settings->buttons[3], new_game->player_settings->cursor) && mouse_event.type == LB_RELEASED)
+        else if (mouse_over(new_game->player_settings->buttons[3], new_game->cursor) && mouse_event.type == LB_RELEASED)
         {
             new_game->cursor->cursor_image = get_hammer(new_game->player_settings);
             new_game->game_state = SINGLE_PLAYER;
         }
-        move_cursor(&new_packet, new_game->player_settings->cursor);
-        update_buttons(new_game->player_settings->cursor, new_game->player_settings->buttons, new_game->player_settings->num_buttons);
+        move_cursor(&new_packet, new_game->cursor);
+        update_buttons(new_game->cursor, new_game->player_settings->buttons, new_game->player_settings->num_buttons);
         break;
     }
 }

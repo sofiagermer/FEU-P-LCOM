@@ -22,11 +22,11 @@
 #include "vd_card.h"
 #include "rtc.h"
 #include "mole.h"
-#include "button.h"
+
 //#include "menu.h"
 //#include "Player.h"
 #include "score.h"
-
+#include "menu.h"
 
 typedef enum {MAIN_MENU, PLAYER_SETTINGS, SINGLE_PLAYER, MULTI_PLAYER, GAME_OVER, LEADERBOARD, EXIT} game_state;
 typedef enum {TIMER, KEYBOARD, MOUSE} device;

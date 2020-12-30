@@ -29,8 +29,6 @@ typedef enum_click{
     no_click = -1
 }click_t; */
 
-
-
 typedef struct {
     xpm_image_t logo;         
     Button** buttons;
@@ -40,12 +38,6 @@ typedef struct {
 
 void load_background();
 Menu *load_menu();
-Cursor *load_cursor(xpm_row_t *img_cursor);
-
-void draw_cursor(Cursor *cursor);
 void draw_background();
 void draw_logo(Menu *menu);
 void draw_menu(Menu *menu);
-
-int mouse_over(Button *button, Cursor *cursor);
-void move_cursor(struct packet *packet, Cursor *cursor);
