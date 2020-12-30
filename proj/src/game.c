@@ -36,6 +36,7 @@ WhacAMole *load_game()
     }
     new_game->menu = load_menu();
     new_game->player_settings = load_player_settings();
+    new_game->leaderboard = load_leaderboard();
     new_game->cursor = load_cursor(cursor_xpm);
     new_game->game_over = load_game_over();
     new_game->good_bye = load_good_bye();
@@ -64,9 +65,9 @@ GameOver *load_game_over()
     game_over->numbers = img;
 
     game_over->cursor = load_cursor(cursor_xpm);
-    game_over->main_menu_button = load_button(300, 450, game_over_main_menu_xpm, game_over_main_menu_bright_xpm);
-    game_over->ranking_button = load_button(300, 500, game_over_ranking_xpm, game_over_ranking_bright_xpm);
-    game_over->exit_button = load_button(300, 550, game_over_exit_xpm, game_over_exit_bright_xpm);
+    game_over->main_menu_button = load_button(300, 450, main_menu_normal_xpm, main_menu_active_xpm);
+    game_over->ranking_button = load_button(300, 500, leaderboard_normal_xpm, leaderboard_active_xpm);
+    game_over->exit_button = load_button(300, 550, exit_normal_xpm, exit_active_xpm);
     return game_over;
 }
 
@@ -197,6 +198,9 @@ void GeneralInterrupt(device device, WhacAMole *new_game)
         break;
      case GAME_OVER:
         Game_Over_interrupt_handler(device, new_game);
+        break;
+    case LEADERBOARD:
+        Leaderboard_interrupt_handler(device, new_game);
         break;
     case EXIT:
         Exit_interrupt_handler(device, new_game);
@@ -397,6 +401,8 @@ void Game_Over_interrupt_handler(device device, WhacAMole* new_game){
                 new_game->player_settings = load_player_settings();
                 new_game->game_state = MAIN_MENU;
             }
+            if (new_game->game_over->ranking_button->bright_ && mouse_event.type == LB_RELEASED)
+                new_game->game_state = LEADERBOARD;
             if (new_game->game_over->exit_button->bright_ && mouse_event.type == LB_RELEASED){
                 exit_time = timer_counter + 180;
                 new_game->game_state = EXIT;
@@ -404,6 +410,27 @@ void Game_Over_interrupt_handler(device device, WhacAMole* new_game){
             break;
     }
 }
+
+void Leaderboard_interrupt_handler(device device, WhacAMole *new_game) {
+    struct mouse_ev mouse_event;
+    struct packet new_packet;
+    switch(device){
+        case TIMER:
+            draw_leaderboard(new_game->leaderboard);
+            break;
+        case KEYBOARD:
+            break;
+        case MOUSE:
+            mouse_parse_packet(packet, &new_packet);
+            mouse_event = mouse_get_event(&new_packet);
+            if (mouse_over(new_game->leaderboard->close, new_game->leaderboard->cursor) && mouse_event.type == LB_RELEASED) {
+                new_game->game_state = MAIN_MENU;
+            }
+            move_cursor_____(&new_packet, new_game->leaderboard);
+            break;
+    }
+}
+
 void Exit_interrupt_handler(device device, WhacAMole* new_game){
     switch(device){
         case TIMER:

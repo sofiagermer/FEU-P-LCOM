@@ -7,7 +7,6 @@
 #include <stdint.h>
 
 #include "game.h"
-#include "rtc.h"
 
 // Any header files included below this line should have been created by you
 
@@ -36,11 +35,8 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-extern uint8_t scan_code;
-extern bool keyboard_done_getting_scancodes;
-
 int(proj_main_loop)(int argc, char *argv[]) {
-/*
+
   if (vggg_init(0x115) == NULL)
     return 1;
   
@@ -51,51 +47,51 @@ int(proj_main_loop)(int argc, char *argv[]) {
   game_main_loop(new_game);
 
   vg_exit();
-*/
-    int ipc_status;
-    message msg;
-    uint8_t bit_no = 0;
-    unsigned long r;
 
-    rtc_start(); //initializes variables rtc_time  e rtc_date
+    // int ipc_status;
+    // message msg;
+    // uint8_t bit_no = 0;
+    // unsigned long r;
 
-    extern Time rtc_time;
-    extern Date rtc_date;
+    // rtc_start(); //initializes variables rtc_time  e rtc_date
 
-    if (rtc_subscribe_int(&bit_no) != 0) {
-        printf("ERROR: Subscribe failed");
-        return 1;
-    }
+    // extern Time rtc_time;
+    // extern Date rtc_date;
+
+    // if (rtc_subscribe_int(&bit_no) != 0) {
+    //     printf("ERROR: Subscribe failed");
+    //     return 1;
+    // }
 
     
-    uint16_t irq_rtc = BIT(bit_no);   /// ATENCAO 16bits pois 0 RTC_IRQ = 8
+    // uint16_t irq_rtc = BIT(bit_no);   /// ATENCAO 16bits pois 0 RTC_IRQ = 8
 
-    while (rtc_time.second != 0) { // para nao durar para sempre, nao relevante
-        if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
-            printf("driver_receive failed with: %d", r);
-            continue;
-        }
+    // while (rtc_time.second != 0) { // para nao durar para sempre, nao relevante
+    //     if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
+    //         printf("driver_receive failed with: %d", r);
+    //         continue;
+    //     }
 
-        if (is_ipc_notify(ipc_status)) { // received notification
-            switch (_ENDPOINT_P(msg.m_source)) {
-                case HARDWARE: // hardware interrupt notification
-                    if (msg.m_notify.interrupts & irq_rtc) { // subscribed interrupt BIT MASK
-                        rtc_int_handler(); //ATUALIZA VARIAVEL GLOBAL DO TEMPO
-                        printf("Time ----  %d:%d:%d\n", rtc_time.hour,rtc_time.minute, rtc_time.second);
-                    }
-                    break;
-                default:
-                    break; /* no other notifications expected: do nothing */
-            }
-        } else { /* received a standard message, not a notification */
-            /* no standard messages expected: do nothing */
-        }
-    }
+    //     if (is_ipc_notify(ipc_status)) { // received notification
+    //         switch (_ENDPOINT_P(msg.m_source)) {
+    //             case HARDWARE: // hardware interrupt notification
+    //                 if (msg.m_notify.interrupts & irq_rtc) { // subscribed interrupt BIT MASK
+    //                     rtc_int_handler(); //ATUALIZA VARIAVEL GLOBAL DO TEMPO
+    //                     printf("Time ----  %d:%d:%d\n", rtc_time.hour,rtc_time.minute, rtc_time.second);
+    //                 }
+    //                 break;
+    //             default:
+    //                 break; /* no other notifications expected: do nothing */
+    //         }
+    //     } else { /* received a standard message, not a notification */
+    //         /* no standard messages expected: do nothing */
+    //     }
+    // }
 
-    if (rtc_unsubscribe_int() != 0) {
-        printf("ERROR: Unsubscribe failed");
-        return 1;    
-    }
+    // if (rtc_unsubscribe_int() != 0) {
+    //     printf("ERROR: Unsubscribe failed");
+    //     return 1;    
+    // }
 
   return OK;
 }

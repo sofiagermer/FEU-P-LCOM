@@ -1,15 +1,14 @@
 
 #include <lcom/lcf.h>
 #include <Sprites/background.xpm>
-#include <Sprites/cursor.xpm>
-#include <Sprites/exit_bright.xpm>
-#include <Sprites/exit.xpm>
 #include <Sprites/logo.xpm>
-#include <Sprites/multiplayer_bright.xpm>
-#include <Sprites/multiplayer.xpm>
-#include <Sprites/singleplayer_bright.xpm>
-#include <Sprites/singleplayer.xpm>
-
+#include <Sprites/cursor.xpm>
+#include <Sprites/Buttons_img/normal/exit_normal.xpm>
+#include <Sprites/Buttons_img/active/exit_active.xpm>
+#include <Sprites/Buttons_img/normal/singleplayer_normal.xpm>
+#include <Sprites/Buttons_img/active/singleplayer_active.xpm>
+#include <Sprites/Buttons_img/normal/multiplayer_normal.xpm>
+#include <Sprites/Buttons_img/active/multiplayer_active.xpm>
 
 #include <vd_card.h>
 #include <mouse.h>

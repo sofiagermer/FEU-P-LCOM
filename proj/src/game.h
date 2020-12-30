@@ -8,12 +8,11 @@
 #include <Sprites/game_over_missed_moles.xpm>
 #include <Sprites/game_over_hitted_moles.xpm>
 #include <Sprites/game_over_numbers.xpm>
-#include <Sprites/game_over_main_menu.xpm>
-#include <Sprites/game_over_main_menu_bright.xpm>
-#include <Sprites/game_over_ranking.xpm>
-#include <Sprites/game_over_ranking_bright.xpm>
-#include <Sprites/game_over_exit.xpm>
-#include <Sprites/game_over_exit_bright.xpm>
+#include <Sprites/Buttons_img/normal/main_menu_normal.xpm>
+#include <Sprites/Buttons_img/active/main_menu_active.xpm>
+#include <Sprites/Buttons_img/normal/leaderboard_normal.xpm>
+#include <Sprites/Buttons_img/active/leaderboard_active.xpm>
+
 #include <Sprites/table.xpm>
 #include <Sprites/good_bye_message.xpm>
 #include <Sprites/good_bye_mole.xpm>
@@ -26,9 +25,10 @@
 #include "mouse.h"
 #include "state_machine.h"
 #include "rtc.h"
-#include "Player.h"
+//#include "Player.h"
+#include "score.h"
 
-typedef enum {MAIN_MENU, PLAYER_SETTINGS, SINGLE_PLAYER, MULTI_PLAYER, GAME_OVER, EXIT} game_state;
+typedef enum {MAIN_MENU, PLAYER_SETTINGS, SINGLE_PLAYER, MULTI_PLAYER, GAME_OVER, LEADERBOARD, EXIT} game_state;
 typedef enum {TIMER, KEYBOARD, MOUSE} device;
 
 typedef struct {
@@ -40,8 +40,6 @@ typedef struct {
 	Button *main_menu_button;
 	Button *ranking_button;
 	Button *exit_button;
-
-
 } GameOver;
 
 typedef struct {
@@ -63,6 +61,7 @@ typedef struct {
 	Player_Settings* player_settings;
 	Cursor* cursor;
 	GameOver* game_over;
+	Leaderboard* leaderboard;
 	GoodBye* good_bye;
 	game_state game_state;
 	bool running;
@@ -81,6 +80,7 @@ void Player_Settings_interrupt_handler(device device, WhacAMole *new_game);
 void Single_Player_interrupt_handler(device device, WhacAMole* game);
 void Multi_Player_interrupt_handler(device device, WhacAMole* game);
 void Game_Over_interrupt_handler(device device, WhacAMole* game);
+void Leaderboard_interrupt_handler(device device, WhacAMole *new_game);
 void Exit_interrupt_handler(device device, WhacAMole* new_game);
 
 void show_timer(unsigned int timer_counter, WhacAMole *game);

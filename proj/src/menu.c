@@ -50,9 +50,9 @@ Menu *load_menu() {
   xpm_load(logo_xpm, XPM_8_8_8_8, &img);
   menu->logo =img;
   //ver coordenadas onde vou por os botões
-  menu->single_player_button = load_button(300, 400, singleplayer_xpm, singleplayer_bright_xpm);
-  menu->multi_player_button = load_button(300, 450, multiplayer_xpm, multiplayer_bright_xpm);
-  menu->exit_button = load_button(300, 500, exit_xpm, exit_bright_xpm);
+  menu->single_player_button = load_button(300, 400, singleplayer_normal_xpm, singleplayer_active_xpm);
+  menu->multi_player_button = load_button(300, 450, multiplayer_normal_xpm, multiplayer_active_xpm);
+  menu->exit_button = load_button(300, 500, exit_normal_xpm, exit_active_xpm);
 
   menu->cursor = load_cursor(cursor_xpm);
 
