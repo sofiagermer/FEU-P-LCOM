@@ -66,7 +66,7 @@ GameOver *load_game_over()
 
     game_over->cursor = load_cursor(cursor_xpm);
     game_over->num_buttons = 3;
-    game_over->buttons = (Button**) malloc(sizeof(Button*) * game_over->num_buttons);
+    game_over->buttons = (Button **)malloc(sizeof(Button *) * game_over->num_buttons);
     game_over->buttons[0] = load_button(300, 450, main_menu_normal_xpm, main_menu_active_xpm);
     game_over->buttons[1] = load_button(300, 500, leaderboard_normal_xpm, leaderboard_active_xpm);
     game_over->buttons[2] = load_button(300, 550, exit_normal_xpm, exit_active_xpm);
@@ -224,7 +224,13 @@ void Player_Settings_interrupt_handler(device device, WhacAMole *new_game)
     switch (device)
     {
     case TIMER:
-        draw_menu_player_settings(new_game->player_settings);
+        draw_background__(new_game->player_settings);
+        draw_avatars(new_game->player_settings->avatars);
+        draw_buttons(new_game->player_settings->buttons, new_game->player_settings->num_buttons);
+        draw_player_name(new_game->player_settings->font, 0, 420, new_game->player_settings->player->name, new_game->player_settings->player->name_max_size);
+        if (new_game->player_settings->name_maximum_length)
+            draw_name_lenght_warning(new_game->player_settings);
+        draw_cursor(new_game->cursor);
         break;
     case KEYBOARD:
         if (new_game->player_settings->buttons[2]->state == ACTIVE)
@@ -280,8 +286,10 @@ void Main_Menu_interrupt_handler(device device, WhacAMole *new_game)
     switch (device)
     {
     case TIMER:
-        draw_menu(new_game->menu);
-        draw_cursor(new_game->menu->cursor);
+        draw_background();
+        draw_logo(new_game->menu);
+        draw_buttons(new_game->menu->buttons, new_game->menu->num_buttons);
+        draw_cursor(new_game->cursor);
         break;
     case KEYBOARD:
         break;
@@ -301,8 +309,8 @@ void Main_Menu_interrupt_handler(device device, WhacAMole *new_game)
             exit_time = timer_counter + 180;
             new_game->game_state = EXIT;
         }
-        move_cursor(&new_packet, new_game->menu->cursor);
-        update_buttons(new_game->menu->cursor, new_game->menu->buttons, new_game->menu->num_buttons);
+        move_cursor(&new_packet, new_game->cursor);
+        update_buttons(new_game->cursor, new_game->menu->buttons, new_game->menu->num_buttons);
         break;
     }
 }
@@ -436,17 +444,15 @@ void Game_Over_interrupt_handler(device device, WhacAMole *new_game)
     case TIMER:
         draw_background();
         draw_game_over(new_game->game_over, new_game->player_settings->player);
-        draw_cursor(new_game->game_over->cursor);
-
+        draw_cursor(new_game->cursor);
         break;
     case KEYBOARD:
         break;
     case MOUSE:
         mouse_parse_packet(packet, &new_packet);
         mouse_event = mouse_get_event(&new_packet);
-        move_cursor(&new_packet, new_game->game_over->cursor);
-        update_buttons(new_game->game_over->cursor, new_game->game_over->buttons, new_game->game_over->num_buttons);
-        //check_cursor_play_again(new_game->game_over);
+        move_cursor(&new_packet, new_game->cursor);
+        update_buttons(new_game->cursor, new_game->game_over->buttons, new_game->game_over->num_buttons);
         if (new_game->game_over->buttons[0]->state == ACTIVE && mouse_event.type == LB_RELEASED)
         {
             new_game->player_settings = load_player_settings();
@@ -470,7 +476,12 @@ void Leaderboard_interrupt_handler(device device, WhacAMole *new_game)
     switch (device)
     {
     case TIMER:
-        draw_leaderboard(new_game->leaderboard);
+        draw_leaderboard_backgound(new_game->leaderboard);
+        draw_table__(new_game->leaderboard);
+        draw_buttons(new_game->leaderboard->buttons, new_game->leaderboard->num_buttons);
+        draw_player_names(new_game->leaderboard);
+        draw_player_scores(new_game->leaderboard);
+        draw_cursor(new_game->cursor);
         break;
     case KEYBOARD:
         break;
@@ -481,8 +492,8 @@ void Leaderboard_interrupt_handler(device device, WhacAMole *new_game)
         {
             new_game->game_state = MAIN_MENU;
         }
-        move_cursor(&new_packet, new_game->leaderboard->cursor);
-        update_buttons(new_game->leaderboard->cursor, new_game->leaderboard->buttons, new_game->leaderboard->num_buttons);
+        move_cursor(&new_packet, new_game->cursor);
+        update_buttons(new_game->cursor, new_game->leaderboard->buttons, new_game->leaderboard->num_buttons);
         break;
     }
 }

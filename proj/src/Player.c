@@ -1,47 +1,6 @@
 #include <lcom/lcf.h>
 #include <stdint.h>
-
 #include "Player.h"
-
-/*
-//EXACTLY THE SAME AS IN MENU
-Button *load_button(uint16_t xi, uint16_t yi, xpm_row_t *normal, xpm_row_t *bright)
-{
-    Button *button = malloc(sizeof(Button));
-
-    if (button == NULL)
-        return NULL;
-
-    xpm_image_t img;
-    xpm_load(normal, XPM_8_8_8_8, &img);
-    button->normal = img;
-
-    xpm_load(bright, XPM_8_8_8_8, &img);
-    button->bright = img;
-
-    button->xi = xi;
-    button->yi = yi;
-    button->xf = xi + button->normal.width;
-    button->yf = yi + button->normal.height;
-    button->bright_ = false;
-    return button;
-}
-
-//EXACTLY THE SAME AS IN MENU
-Cursor *load_cursor(xpm_row_t *img_cursor)
-{
-    Cursor *cursor = malloc(sizeof(Cursor));
-
-    if (cursor == NULL)
-        return NULL;
-
-    xpm_image_t img;
-    xpm_load(cursor_xpm, XPM_8_8_8_8, &img);
-    cursor->cursor_image = img;
-    cursor->x = 50;
-    cursor->y = 50;
-    return cursor;
-}*/
 
 Player* load_player(Avatar* default_avatar)
 {
@@ -109,17 +68,11 @@ Player_Settings *load_player_settings() {
     player_settings->buttons[1] = load_button(450, 300, arrow_right_normal_xpm, arrow_right_active_xpm);
     player_settings->buttons[2] = load_button(0, 375, name_box_normal_xpm, name_box_active_xpm);
     player_settings->buttons[3] = load_button(677, 415, start_normal_xpm, start_active_xpm);
-    
-
-    player_settings->cursor = load_cursor(cursor_xpm);
 
     player_settings->player = load_player(player_settings->avatars[0]);
     player_settings->name_maximum_length = false;
     return player_settings;
 }
-
-
-
 
 
 void draw_player(Player *player)
@@ -145,7 +98,6 @@ void draw_name_lenght_warning(Player_Settings* player_settings) {
 void draw_avatars(Avatar* avatars[4]) {
     //there are only 4 possible avatars to chose from
     for (int i = 0; i < 4; i++) {
-        //update mole position
         switch (avatars[i]->state) {
         case NOT_SELECTED:
             avatars[i]->atual = avatars[i]->normal;
@@ -157,7 +109,6 @@ void draw_avatars(Avatar* avatars[4]) {
             break;
         }
     }
-
     uint32_t *player_avatar1_map = (uint32_t *)avatars[0]->atual.bytes;
     vg_draw_xpm(player_avatar1_map, avatars[0]->atual, 80, 150);
 
@@ -171,19 +122,7 @@ void draw_avatars(Avatar* avatars[4]) {
     vg_draw_xpm(player_avatar4_map, avatars[3]->atual, 620, 150);
 }
 
-void draw_buttons__(Player_Settings* player_settings) {
-  for (int i = 0; i < player_settings->num_buttons; i++) {
-    draw_button(player_settings->buttons[i]);
-  }
-}
-
-/*
-void draw_cursor(Cursor *cursor) {
-  uint32_t* cursor_map = (uint32_t*) cursor->cursor_image.bytes;
-  vg_draw_xpm(cursor_map, cursor->cursor_image, cursor->x, cursor->y);
-}*/
-
-void draw_menu_player_settings(Player_Settings* player_settings) {
+/*void draw_menu_player_settings(Player_Settings* player_settings) {
     draw_background__(player_settings);
     draw_avatars(player_settings->avatars);
     draw_buttons__(player_settings);
@@ -192,47 +131,6 @@ void draw_menu_player_settings(Player_Settings* player_settings) {
       draw_name_lenght_warning(player_settings);
     }
     draw_cursor(player_settings->cursor);
-}
-
-/*
-int mouse_over(Button *button, Cursor *cursor) {
-  if (button->xi <= cursor->x && cursor->x <= button->xf && button->yi <= cursor->y && cursor->y <= button->yf)
-    return 1;
-  else
-    return 0;
-}*/
-
-
-/*void move_cursor__(struct packet *packet, Player_Settings* player_settings) {
-  //Update x position
-  player_settings->cursor->x += packet->delta_x;
-  if (player_settings->cursor->x > 790) {
-    player_settings->cursor->x = 790 - player_settings->cursor->cursor_image.width;
-  }
-  else if (player_settings->cursor->x < 0) {
-    player_settings->cursor->x = 0;
-  }
-
-  //Update y position
-  player_settings->cursor->y -= packet ->delta_y;
-  if (player_settings->cursor->y > 590) {
-    player_settings->cursor->y = 590 - player_settings->cursor->cursor_image.height;
-  }
-  else if (player_settings->cursor->y < 0) {
-    player_settings->cursor->y = 0;
-  }
-
-  if (mouse_over(player_settings->left_arrow, player_settings->cursor))
-    player_settings->left_arrow->bright_ = true;
-  else if (mouse_over(player_settings->right_arrow, player_settings->cursor))
-    player_settings->right_arrow->bright_ = true;
-  else if (mouse_over(player_settings->start, player_settings->cursor))
-    player_settings->start->bright_ = true;
-  else { 
-    player_settings->left_arrow->bright_ = false;
-    player_settings->right_arrow->bright_ = false;
-    player_settings->start->bright_ = false;
-  }
 }*/
 
 void move_left_avatar(Player_Settings* player_settings) {

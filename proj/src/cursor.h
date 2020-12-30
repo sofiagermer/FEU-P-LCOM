@@ -1,6 +1,8 @@
 #include <lcom/lcf.h>
 #include <Sprites/cursor.xpm>
 #include "vd_card.h"
+
+
 typedef struct{
     xpm_image_t cursor_image;
     uint16_t x;

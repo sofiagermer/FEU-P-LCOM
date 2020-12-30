@@ -1,21 +1,17 @@
 #include <lcom/lcf.h>
 
 #include <Sprites/hole.xpm>
-
 #include <Sprites/mole_up1.xpm>
 #include <Sprites/mole_up2.xpm>
 #include <Sprites/mole_up3.xpm>
 #include <Sprites/mole_up4.xpm>
 
-/* #include <Sprites/mole_down_miss1.xpm>
-#include <Sprites/mole_down_miss2.xpm>
-#include <Sprites/mole_down_miss3.xpm>
-#include <Sprites/mole_down_miss4.xpm> */
-
 #include <Sprites/mole_down_hit1.xpm>
 #include <Sprites/mole_down_hit2.xpm>
 #include <Sprites/mole_down_hit3.xpm>
 #include <Sprites/mole_down_hit4.xpm>
+
+#include "vd_card.h"
 
 #define MOLE_HEIGHT  150
 #define MOLE_WIDHT   175

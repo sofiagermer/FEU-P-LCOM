@@ -6,10 +6,9 @@
 #include <Sprites/font_small.xpm>
 #include <Sprites/score_numbers.xpm>
 
-#include "Player.h"
 #include "vd_card.h"
 #include "rtc.h"
-
+#include "button.h"
 
 #define NAME_STEP_FROM_X 342
 #define NAME_STEP_FROM_Y 151
@@ -42,7 +41,6 @@ typedef struct  {
     xpm_image_t numbers;
     Button** buttons;
     int num_buttons;
-    Cursor* cursor;
     Score_Record* score_records;
     int max_name_length;
     int max_score_records;
@@ -65,13 +63,10 @@ void draw_player_scores(Leaderboard* leaderboard);
 
 void draw_player_score(xpm_image_t font, int xi, int yi, int score);
 
-void draw_buttons____(Leaderboard* leaderboard);
-
-void move_cursor_____(struct packet *packet, Leaderboard* leaderboard);
-
 void save_scores(Leaderboard* leaderboard);
 
 void load_scores(Leaderboard* leaderboard);
 
 //bool add_new_score(Leaderboard* leaderboard, Player* player);
 
+void draw_player_name_ll(xpm_image_t font, int xi, int yi, char name[], int name_size);

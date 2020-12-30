@@ -1,8 +1,6 @@
 #include "menu.h"
 #include <lcom/lcf.h>
 
-
-
 //background xpm
 xpm_image_t background;
 
@@ -21,8 +19,6 @@ Menu *load_menu()
   menu->buttons[2] = load_button(192, 547, leaderboard_normal_xpm, leaderboard_active_xpm);
   menu->buttons[3] = load_button(430, 441, instructions_normal_xpm, instructions_active_xpm);
   menu->buttons[4] = load_button(430, 494, exit_normal_xpm, exit_active_xpm);
-
-  menu->cursor = load_cursor(cursor_xpm);
 
   return menu;
 }
@@ -45,12 +41,12 @@ void draw_logo(Menu *menu)
 }
 
 
-void draw_menu(Menu *menu)
+/*void draw_menu(Menu *menu)
 {
   draw_background();
   draw_logo(menu);
   draw_buttons(menu->buttons, menu->num_buttons);
-}
+}*/
 
 
 

@@ -84,7 +84,6 @@ Leaderboard *load_leaderboard()
     leaderboard->num_buttons = 1;
     leaderboard->buttons = (Button **)malloc(sizeof(Button *) * leaderboard->num_buttons);
     leaderboard->buttons[0] = load_button(CLOSE_STEP_FROM_X, CLOSE_STEP_FROM_Y, score_close_normal_xpm, score_close_active_xpm);
-    leaderboard->cursor = load_cursor(cursor_xpm);
 
     return leaderboard;
 }
@@ -95,15 +94,15 @@ Leaderboard *load_leaderboard()
     score_record->accuracy = score;
 }*/
 
-void draw_leaderboard(Leaderboard *leaderboard)
+/*void draw_leaderboard(Leaderboard *leaderboard)
 {
     draw_leaderboard_backgound(leaderboard);
     draw_table__(leaderboard);
-    draw_buttons____(leaderboard);
+    draw_buttons(leaderboard->buttons, leaderboard->max_score_records);
     draw_player_names(leaderboard);
     draw_player_scores(leaderboard);
     draw_cursor(leaderboard->cursor);
-}
+}*/
 
 void draw_leaderboard_backgound(Leaderboard *leaderboard)
 {
@@ -125,8 +124,31 @@ void draw_player_names(Leaderboard *leaderboard)
     {
         Score_Record *curr_score_record = &leaderboard->score_records[i];
         if (curr_score_record->player_name_size != 0)
-            draw_player_name(leaderboard->font, NAME_STEP_FROM_X, i * NAME_STEP_FROM_LINE + NAME_STEP_FROM_Y, curr_score_record->player_name, curr_score_record->player_name_size);
+            draw_player_name_ll(leaderboard->font, NAME_STEP_FROM_X, i * NAME_STEP_FROM_LINE + NAME_STEP_FROM_Y, curr_score_record->player_name, curr_score_record->player_name_size);
     }
+}
+
+void draw_player_name_ll(xpm_image_t font, int xi, int yi, char name[], int name_size) {
+  uint32_t *font_pixmap = (uint32_t *)font.bytes;
+  int letter_width = font.width / (26/2); // 26 letters in two rows equals 13 letter per row
+  int letter_height = font.height / 2; //two rows of letters
+  printf("--- ");
+  printf("%d", font.height);
+  printf(" ---\n");
+  int index = 0;
+  for (int i = 0; i < name_size; i++) {
+    if (name[i] == ' ')
+      break;
+    index = (int)name[i] - (int)'A';
+    if (index < 13) {
+        //first row
+        vg_draw_part_of_xpm(font_pixmap, font, xi+i*letter_width, yi, index*letter_width, index*letter_width + letter_width, 0, letter_height);
+    }
+    else {
+        //second row
+        vg_draw_part_of_xpm(font_pixmap, font, xi+i*letter_width, yi, index*letter_width, index*letter_width + letter_width, letter_height, letter_height*2);
+    }
+  }
 }
 
 void draw_player_scores(Leaderboard *leaderboard)
@@ -164,15 +186,6 @@ void draw_player_score(xpm_image_t font, int xi, int yi, int score)
         vg_draw_part_of_xpm(font_pixmap, font, xi - 2 * number_width, yi, mid_score_number * number_width, (mid_score_number + 1) * number_width, 0, number_height);
     }
 }
-
-void draw_buttons____(Leaderboard *leaderboard)
-{
-    for (int i = 0; i < leaderboard->num_buttons; i++)
-    {
-        draw_button(leaderboard->buttons[i]);
-    }
-}
-
 
 void save_scores(Leaderboard *leaderboard)
 {
