@@ -1,5 +1,5 @@
 /* XPM */
-static char * icon_time_xpm[] = {
+static xpm_row_t const clock_icon_xpm[] = {
 "48 50 940 2",
 "  	c None",
 ". 	c #010101",

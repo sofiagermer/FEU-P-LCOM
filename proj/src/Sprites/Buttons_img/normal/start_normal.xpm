@@ -1,5 +1,5 @@
 /* XPM */
-static xpm_row_t const start_xpm[] = {
+static xpm_row_t const start_normal_xpm[] = {
 "89 55 1988 2",
 "  	c None",
 ". 	c #535650",

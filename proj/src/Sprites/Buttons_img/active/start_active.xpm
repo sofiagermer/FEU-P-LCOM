@@ -1,5 +1,5 @@
 /* XPM */
-static xpm_row_t const start_bright_xpm[] = {
+static xpm_row_t const start_active_xpm[] = {
 "89 55 1694 2",
 "  	c None",
 ". 	c #828580",

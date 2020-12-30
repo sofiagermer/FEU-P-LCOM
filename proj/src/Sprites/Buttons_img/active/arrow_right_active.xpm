@@ -1,5 +1,5 @@
 /* XPM */
-static xpm_row_t const  arrow_right_bright_xpm[] = {
+static xpm_row_t const  arrow_right_active_xpm[] = {
 "75 32 267 2",
 "  	c None",
 ". 	c #000000",
