@@ -10,11 +10,9 @@ Cursor *load_cursor(xpm_row_t *img_cursor)
   if (cursor == NULL)
     return NULL;
 
-  xpm_image_t img;
-  xpm_load(cursor_xpm, XPM_8_8_8_8, &img);
-  cursor->cursor_image = img;
-  cursor->x = 50;
-  cursor->y = 50;
+  xpm_load(cursor_xpm, XPM_8_8_8_8, &(cursor->cursor_image));
+  cursor->x = 400;
+  cursor->y = 300;
   return cursor;
 }
 

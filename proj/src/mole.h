@@ -5,7 +5,10 @@
 #include <Sprites/mole_up2.xpm>
 #include <Sprites/mole_up3.xpm>
 #include <Sprites/mole_up4.xpm>
-
+#include <Sprites/mole_down_miss1.xpm>
+#include <Sprites/mole_down_miss2.xpm>
+#include <Sprites/mole_down_miss3.xpm>
+#include <Sprites/mole_down_miss4.xpm>
 #include <Sprites/mole_down_hit1.xpm>
 #include <Sprites/mole_down_hit2.xpm>
 #include <Sprites/mole_down_hit3.xpm>
@@ -13,10 +16,6 @@
 
 #include "vd_card.h"
 
-#define MOLE_HEIGHT  150
-#define MOLE_WIDHT   175
-#define STEP_FROM_X  180
-#define STEP_FROM_Y  180
 #define GAME_FPS     12
 #define MOLE_UP_TIME GAME_FPS*3
 #define GAME_DURATION GAME_FPS*30
@@ -31,14 +30,10 @@
 #define KBD_KEY_4 'K'
 #define KBD_KEY_5 'L'
 
-typedef enum {HIDED, UP_1, UP_2, UP_3, UP_4, DOWN_MISSED_4, DOWN_MISSED_3, DOWN_MISSED_2, DOWN_MISSED_1, DOWN_HIT_4, DOWN_HIT_3, DOWN_HIT_2, DOWN_HIT_1} Position;
+typedef enum {HIDED = 0, UP_1, UP_2, UP_3, UP_4, DOWN_MISSED_4, DOWN_MISSED_3, DOWN_MISSED_2, DOWN_MISSED_1, DOWN_HIT_4, DOWN_HIT_3, DOWN_HIT_2, DOWN_HIT_1} Position;
 
 typedef struct  {
-    xpm_image_t atual_img;
-    xpm_image_t hided;
-    xpm_image_t up_or_down_missed[4];
-    xpm_image_t down_hit[4];
-    
+    xpm_image_t sprites[13];
     int index;
     char kbd_key;
     int x,y;

@@ -9,11 +9,10 @@
 
 
 
-typedef enum {NORMAL, ACTIVE} Button_state;
+typedef enum {NORMAL=0, ACTIVE} Button_state;
 
 typedef struct {
-    xpm_image_t img[2];
-    xpm_image_t atual_img;
+    xpm_image_t sprites[2];
     Button_state state;
     uint16_t xi, xf, yi, yf;
 } Button;

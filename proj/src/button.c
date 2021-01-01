@@ -10,18 +10,12 @@ Button *load_button(uint16_t xi, uint16_t yi, xpm_row_t *normal, xpm_row_t *brig
   if (button == NULL)
     return NULL;
 
-  xpm_image_t img;
-  xpm_load(normal, XPM_8_8_8_8, &img);
-  button->img[0] = img;
-
-  xpm_load(bright, XPM_8_8_8_8, &img);
-  button->img[1] = img;
-
-  button->atual_img = button->img[0];
+  xpm_load(normal, XPM_8_8_8_8, &(button->sprites[1]));
+  xpm_load(bright, XPM_8_8_8_8, &(button->sprites[1]));
   button->xi = xi;
   button->yi = yi;
-  button->xf = xi + button->atual_img.width;
-  button->yf = yi + button->atual_img.height;
+  button->xf = xi + button->sprites[0].width;
+  button->yf = yi + button->sprites[0].height;
   button->state = NORMAL;
   return button;
 }
@@ -39,19 +33,8 @@ void update_buttons(Cursor* cursor, Button** buttons, int num_buttons) {
 
 void draw_button(Button *button)
 {
-  switch (button->state)
-  {
-  case NORMAL:
-    button->atual_img = button->img[0];
-    break;
-  case ACTIVE:
-    button->atual_img = button->img[1];
-    break;
-  default:
-    break;
-  }
-  uint32_t *button_atual_img_map = (uint32_t *)button->atual_img.bytes;
-  vg_draw_xpm(button_atual_img_map, button->atual_img, button->xi, button->yi);
+  xpm_image_t current_img = button->sprites[(int) button->state];
+  vg_draw_xpm((uint32_t*) current_img.bytes, current_img, button->xi, button->yi);
 }
 
 

@@ -165,7 +165,6 @@ int (rtc_subscribe_int)(uint8_t *bit_no) {
     }
 
     if(enable_rtc_UI()) return FAIL;
-
     return OK;
 }
 
@@ -183,7 +182,6 @@ int (rtc_unsubscribe_int)() {
 
 void (rtc_int_handler)(){
     uint32_t reg_c_data=0;
-
     if(sys_outb(RTC_ADDR_REG, RTC_REGISTER_C)) return;
     if(sys_inb(RTC_DATA_REG, &reg_c_data)) return;
 
