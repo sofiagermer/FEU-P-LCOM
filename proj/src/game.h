@@ -9,12 +9,14 @@
 #include <Sprites/game_over_hitted_moles.xpm>
 #include <Sprites/game_over_numbers.xpm>
 #include <Sprites/clock_icon.xpm>
+#include <Sprites/instructions.xpm>
 
 #include <Sprites/font_small.xpm>
 
 #include <Sprites/table.xpm>
 #include <Sprites/good_bye_message.xpm>
 #include <Sprites/good_bye_mole.xpm>
+#include <Sprites/credits.xpm>
 
 #include "xpm_coordinates.h"
 #include "i8042.h"
@@ -30,7 +32,7 @@
 #include "score.h"
 
 
-typedef enum {MAIN_MENU, PLAYER_SETTINGS, SINGLE_PLAYER, MULTI_PLAYER, GAME_OVER, LEADERBOARD, EXIT} game_state;
+typedef enum {MAIN_MENU, PLAYER_SETTINGS, INSTRUCTIONS, SINGLE_PLAYER, MULTI_PLAYER, GAME_OVER, LEADERBOARD, EXIT} game_state;
 typedef enum {TIMER, KEYBOARD, MOUSE, RTC} device;
 
 typedef struct {
@@ -46,8 +48,15 @@ typedef struct {
 typedef struct {
 	xpm_image_t logo;
 	xpm_image_t mole;
+	xpm_image_t credits;
 	uint16_t x_mole;
 } GoodBye;
+
+typedef struct {
+	xpm_image_t instructions;
+
+} Instructions;
+
 
 typedef struct {
 	xpm_image_t game_time_numbers_font;
@@ -68,6 +77,7 @@ typedef struct {
 	Player_Settings* player_settings;
 	Player* player;
 	Cursor* cursor;
+	Instructions *instructions;
 	GameOver* game_over;
 	Leaderboard* leaderboard;
 	GoodBye* good_bye;
@@ -79,11 +89,13 @@ typedef struct {
 WhacAMole* load_game();
 GameOver* load_game_over();
 GoodBye *load_good_bye();
+Instructions *load_instructions();
 
 int game_main_loop(WhacAMole* game);
 
 void GeneralInterrupt(device device,WhacAMole* game);
 void Main_Menu_interrupt_handler(device device, WhacAMole *new_game);
+void Instructions_interrupt_handler(device device, WhacAMole *new_game);
 void Player_Settings_interrupt_handler(device device, WhacAMole *new_game);
 void Single_Player_interrupt_handler(device device, WhacAMole* game);
 void Multi_Player_interrupt_handler(device device, WhacAMole* game);
@@ -109,3 +121,5 @@ void draw_game_over_buttons(GameOver *game_over);
 
 void draw_good_bye_message(GoodBye *good_bye);
 void draw_good_bye_mole(GoodBye *good_bye);
+
+void draw_instructions(Instructions *instructions);

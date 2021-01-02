@@ -46,6 +46,7 @@ WhacAMole *load_game()
     new_game->cursor = load_cursor(cursor_xpm);
     new_game->game_over = load_game_over();
     new_game->good_bye = load_good_bye();
+    new_game->instructions = load_instructions();
     new_game->game_state = MAIN_MENU;
     new_game->running = true;
 
@@ -71,11 +72,22 @@ GameOver *load_game_over()
     return game_over;
 }
 
+Instructions *load_instructions()
+{
+    Instructions *instructions = (Instructions *)malloc(sizeof(Instructions));
+
+    //xpm_load(instructions_xpm, XPM_8_8_8_8, &(instructions->instructions));
+    
+    xpm_load(instructions_xpm, XPM_8_8_8_8, &(instructions->instructions));
+    return instructions;
+}
+
 GoodBye *load_good_bye()
 {
     GoodBye *good_bye = (GoodBye *)malloc(sizeof(GoodBye));
     xpm_load(good_bye_message_xpm, XPM_8_8_8_8, &(good_bye->logo));
     xpm_load(good_bye_mole_xpm, XPM_8_8_8_8, &(good_bye->mole));
+    xpm_load(credits_xpm, XPM_8_8_8_8, &(good_bye->credits));
     good_bye->x_mole = 0;
     return good_bye;
 }
@@ -129,20 +141,12 @@ int game_main_loop(WhacAMole *new_game)
                     if (keyboard_done_getting_scancodes)
                     {
                         GeneralInterrupt(KEYBOARD, new_game);
-                        if (keyboard_done_getting_scancodes && scan_code == ESC_BREAK)
-                        {
-                            new_game->game_state = EXIT;
-                        }
                     }
                 }
 
                 if (msg.m_notify.interrupts & new_game->timer_irq)
                 {
                     timer_int_handler();
-                    /*if (timer_counter / (60 / GAME_FPS) == GAME_DURATION)
-                    {
-                        new_game->game_state = GAME_OVER;
-                    }*/
                     if (timer_counter % (60 / GAME_FPS) == 0)
                     {
                         GeneralInterrupt(TIMER, new_game);
@@ -168,6 +172,7 @@ int game_main_loop(WhacAMole *new_game)
             }
         }
     }
+    free(new_game);
     //Unsubscribing all devices
     if (kbd_unsubscribe_int() != OK)
     {
@@ -199,6 +204,9 @@ void GeneralInterrupt(device device, WhacAMole *new_game)
     {
     case MAIN_MENU:
         Main_Menu_interrupt_handler(device, new_game);
+        break;
+    case INSTRUCTIONS:
+        Instructions_interrupt_handler(device, new_game);
         break;
     case PLAYER_SETTINGS:
         Player_Settings_interrupt_handler(device, new_game);
@@ -245,27 +253,47 @@ void Main_Menu_interrupt_handler(device device, WhacAMole *new_game)
     case MOUSE:
         mouse_parse_packet(packet, &new_packet);
         mouse_event = mouse_get_event(&new_packet);
+        move_cursor(&new_packet, new_game->cursor);
+        update_buttons(new_game->cursor, new_game->menu->buttons, new_game->menu->num_buttons);
         if (new_game->menu->buttons[0]->state == ACTIVE && mouse_event.type == LB_RELEASED)
             new_game->game_state = PLAYER_SETTINGS;
-        /*else if (new_game->game_over->buttons[1]->state == ACTIVE && mouse_event.type == LB_RELEASED)
+        /*else if (new_game->menu->buttons[1]->state == ACTIVE && mouse_event.type == LB_RELEASED)
             new_game->game_state = multiplayer;*/
         else if (new_game->menu->buttons[2]->state == ACTIVE && mouse_event.type == LB_RELEASED)
             new_game->game_state = LEADERBOARD;
-        /*else if (new_game->game_over->buttons[3]->state == ACTIVE && mouse_event.type == LB_RELEASED)
-            new_game->game_state = intruções;*/
+
+        else if (new_game->menu->buttons[3]->state == ACTIVE && mouse_event.type == LB_RELEASED){
+            new_game->game_state = INSTRUCTIONS;
+        }
         else if (new_game->menu->buttons[4]->state == ACTIVE && mouse_event.type == LB_RELEASED)
         {
             exit_time = timer_counter + 180;
             new_game->game_state = EXIT;
         }
-        move_cursor(&new_packet, new_game->cursor);
-        update_buttons(new_game->cursor, new_game->menu->buttons, new_game->menu->num_buttons);
         break;
     case RTC:
         break;
     }
 }
-
+void Instructions_interrupt_handler(device device, WhacAMole *new_game)
+{
+    switch (device)
+    {
+    case TIMER:
+        draw_instructions(new_game->instructions);
+        break;
+    case KEYBOARD:
+        if (keyboard_done_getting_scancodes && scan_code == ESC_BREAK)
+            {
+                new_game->game_state = MAIN_MENU;
+            }
+        break;
+    case MOUSE:
+        break;
+    case RTC:
+        break;
+    }
+}
 void Player_Settings_interrupt_handler(device device, WhacAMole *new_game)
 {
     struct mouse_ev mouse_event;
@@ -326,6 +354,7 @@ void Player_Settings_interrupt_handler(device device, WhacAMole *new_game)
         break;
     }
 }
+
 
 void Single_Player_interrupt_handler(device device, WhacAMole *new_game)
 {
@@ -519,7 +548,7 @@ void Exit_interrupt_handler(device device, WhacAMole *new_game)
         }
         else
         {
-            save_scores(new_game->leaderboard);
+            //save_scores(new_game->leaderboard);
             new_game->running = false;
         }
         break;
@@ -665,10 +694,19 @@ void draw_good_bye_message(GoodBye *good_bye)
 {
     uint32_t *good_bye_map = (uint32_t *)good_bye->logo.bytes;
     vg_draw_xpm(good_bye_map, good_bye->logo, 0, 230);
+
+    uint32_t *credits_map = (uint32_t *)good_bye->credits.bytes;
+    vg_draw_xpm(credits_map, good_bye->credits, 550, 80);
 }
 
 void draw_good_bye_mole(GoodBye *good_bye)
 {
     uint32_t *good_bye_mole = (uint32_t *)good_bye->mole.bytes;
     vg_draw_xpm(good_bye_mole, good_bye->mole, good_bye->x_mole, 450);
+}
+
+void draw_instructions(Instructions *instructions)
+{
+    uint32_t *instructions_map = (uint32_t *)instructions->instructions.bytes;
+    vg_draw_xpm(instructions_map, instructions->instructions, 0,0);
 }
