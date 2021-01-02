@@ -136,13 +136,10 @@ void save_scores(Leaderboard *leaderboard)
 
     for (int i = 0; i < leaderboard->num_score_records; i++)
     {
-        Score_Record *curr_score_record = &leaderboard->score_records[i];
+        Score_Record *curr_score_record = &(leaderboard->score_records[i]);
         fprintf(leaderboard_file, "%s\n", curr_score_record->player_name);
-
         fprintf(leaderboard_file, "%d\n", curr_score_record->score);
-
-        fprintf(leaderboard_file, "%02d/%02d/%02d\n", curr_score_record->date.year, curr_score_record->date.month, curr_score_record->date.day);
-        fprintf(leaderboard_file, "%02d:%02d:%02d\n", curr_score_record->time.hour, curr_score_record->time.minute, curr_score_record->time.second);
+        fprintf(leaderboard_file, "%d/%d/%d\n", curr_score_record->date.day, curr_score_record->date.month, curr_score_record->date.year);
     }
 
     fclose(leaderboard_file);
