@@ -97,11 +97,11 @@ void mouse_parse_packet(uint8_t packet[], struct packet *new_packet) {
   new_packet->delta_y = (uint16_t) packet[2];
 
   if (first_byte & MSB_X_DELTA)
-    new_packet->delta_x |= 0xFF00;
+    new_packet->delta_x |= (0xFF<<8);
   
 
   if (first_byte & MSB_Y_DELTA)
-    new_packet->delta_y |= 0xFF00;
+    new_packet->delta_y |= (0xFF<<8);
   
 }
 

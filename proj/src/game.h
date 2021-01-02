@@ -108,7 +108,7 @@ void show_timer(unsigned int timer_counter, WhacAMole *game);
 void draw_all_moles(WhacAMole * new_game);
 
 int check_over_mole(WhacAMole * new_game);
-//void hit_mole(WhacAMole * new_game, int mole_index);
+
 
 void draw_table(WhacAMole * new_game);
 void draw_counter_moles(WhacAMole * new_game);

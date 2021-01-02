@@ -147,6 +147,10 @@ int game_main_loop(WhacAMole *new_game)
                 if (msg.m_notify.interrupts & new_game->timer_irq)
                 {
                     timer_int_handler();
+                    /*if (timer_counter / (60 / GAME_FPS) == GAME_DURATION)
+                    {
+                        new_game->game_state = GAME_OVER;
+                    }*/
                     if (timer_counter % (60 / GAME_FPS) == 0)
                     {
                         GeneralInterrupt(TIMER, new_game);
@@ -512,6 +516,7 @@ void Leaderboard_interrupt_handler(device device, WhacAMole *new_game)
         draw_buttons(new_game->leaderboard->buttons, new_game->leaderboard->num_buttons);
         draw_player_names(new_game->letters_small_font, new_game->leaderboard->score_records, new_game->leaderboard->num_score_records);
         draw_player_scores(new_game->leaderboard);
+        draw_player_dates(new_game->leaderboard);
         draw_cursor(new_game->cursor);
         break;
     case KEYBOARD:
@@ -548,7 +553,7 @@ void Exit_interrupt_handler(device device, WhacAMole *new_game)
         }
         else
         {
-            //save_scores(new_game->leaderboard);
+            save_scores(new_game->leaderboard);
             new_game->running = false;
         }
         break;
@@ -578,7 +583,7 @@ void draw_table(WhacAMole *new_game)
 void draw_counter_moles(WhacAMole *new_game)
 {
     uint32_t *moles_hitted_map = (uint32_t *)new_game->moles_hitted.bytes;
-    vg_draw_xpm(moles_hitted_map, new_game->moles_hitted, MOLES_MISS_NUM_X, MOLES_MISS_NUM_Y);
+    vg_draw_xpm(moles_hitted_map, new_game->moles_hitted, MOLES_MISS_FRAME_X, MOLES_MISS_FRAME_Y);
 
     uint32_t *moles_missed_map = (uint32_t *)new_game->moles_missed.bytes;
     vg_draw_xpm(moles_missed_map, new_game->moles_missed, MOLES_HIT_FRAME_X, MOLES_HIT_FRAME_Y);

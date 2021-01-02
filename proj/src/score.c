@@ -24,17 +24,8 @@ Leaderboard *load_leaderboard()
     leaderboard->score_records[2].player_name = (char *)malloc(leaderboard->max_name_length);
     leaderboard->score_records[3].player_name = (char *)malloc(leaderboard->max_name_length);
     leaderboard->score_records[4].player_name = (char *)malloc(leaderboard->max_name_length);
-    load_scores(leaderboard);
 
-    leaderboard->score_records[0].player_name[0] = 'P';
-    leaderboard->score_records[0].player_name[1] = 'E';
-    leaderboard->score_records[0].player_name[2] = 'D';
-    leaderboard->score_records[0].player_name[3] = 'R';
-    leaderboard->score_records[0].player_name[4] = 'O';
-    leaderboard->score_records[0].player_name[5] = ' ';
-    leaderboard->score_records[0].player_name[6] = ' ';
-    leaderboard->score_records[0].player_name_size = 7;
-    leaderboard->score_records[0].score = 85;
+    load_scores(leaderboard);
 
     leaderboard->num_buttons = 1;
     leaderboard->buttons = (Button **)malloc(sizeof(Button *) * leaderboard->num_buttons);
@@ -62,6 +53,7 @@ void draw_player_names(xpm_image_t font, Score_Record* score_records, uint8_t nu
     for (int i = 0; i < num_records; i++)
     {
         Score_Record *curr_score_record = &score_records[i];
+
         if (curr_score_record->player_name_size != 0)
             draw_player_name(font, LDBRD_NAME_STEP_FROM_X, i * LDBRD_NAME_STEP_FROM_LINE + LDBRD_NAME_STEP_FROM_Y, curr_score_record->player_name, curr_score_record->player_name_size);
     }
@@ -95,6 +87,16 @@ void draw_player_scores(Leaderboard *leaderboard)
         Score_Record *curr_score_record = &leaderboard->score_records[i];
         if (curr_score_record->player_name_size != 0)
             draw_player_score(leaderboard->numbers, LDBRD_SCORE_STEP_FROM_X, i * LDBRD_SCORE_STEP_FROM_LINE + LDBRD_SCORE_STEP_FROM_Y, curr_score_record->score);
+    }
+}
+
+void draw_player_dates(Leaderboard *leaderboard)
+{
+    for (int i = 0; i < leaderboard->num_score_records; i++)
+    {
+        Score_Record *curr_score_record = &leaderboard->score_records[i];
+        if (curr_score_record->player_name_size != 0)
+            draw_date(leaderboard->numbers, LDBRD_DATE_STEP_FROM_X, i * LDBRD_DATE_STEP_FROM_LINE + LDBRD_DATE_STEP_FROM_Y, curr_score_record->date);
     }
 }
 
@@ -162,27 +164,20 @@ void load_scores(Leaderboard *leaderboard)
         }
         return;
     }
-    int *year = NULL;
-    int *month = NULL;
-    int *day = NULL;
-    int *hour = NULL;
-    int *minute = NULL;
-    int *second = NULL;
+
 
     for (int i = 0; i < leaderboard->num_score_records; i++)
     {   
-        Score_Record *curr_score_record = &leaderboard->score_records[i];
-        fgets(curr_score_record->player_name, leaderboard->max_name_length, leaderboard_file);
+        fgets(leaderboard->score_records[i].player_name, leaderboard->max_name_length, leaderboard_file);
+        strtok(leaderboard->score_records[i].player_name, "\n");
+        if(strncmp(leaderboard->score_records[i].player_name, "nobody", 6) == 0) leaderboard->score_records[i].player_name_size = 0;
+        else leaderboard->score_records[i].player_name_size = strlen(leaderboard->score_records[i].player_name);
 
-        fscanf(leaderboard_file, "%02d/%02d/%02d\n", year, month, day);
-        curr_score_record->date.year = *year;
-        curr_score_record->date.month = *month;
-        curr_score_record->date.day = *day;
+        fscanf(leaderboard_file, "%d", &leaderboard->score_records[i].score);
+        fgetc(leaderboard_file);
 
-        fscanf(leaderboard_file, "%02d:%02d:%02d\n", hour, minute, second);
-        curr_score_record->time.hour = *hour;
-        curr_score_record->time.minute = *minute;
-        curr_score_record->time.second = *second;
+        fscanf(leaderboard_file, "%d/%d/%d", &leaderboard->score_records[i].date.day, &leaderboard->score_records[i].date.month, &leaderboard->score_records[i].date.year);
+        fgetc(leaderboard_file);
     }
 
     fclose(leaderboard_file);
@@ -202,7 +197,7 @@ bool add_new_score(Leaderboard* leaderboard, Player* player) {
     int index_new_score = -1;
     for (int i = leaderboard->num_score_records-1; i >= 0; i--) {
         Score_Record* curr_score_record = &leaderboard->score_records[i];
-        if (score >= curr_score_record->score) {
+        if (score > curr_score_record->score) {
             index_new_score = i;
         }
     }
@@ -228,3 +223,4 @@ bool add_new_score(Leaderboard* leaderboard, Player* player) {
     leaderboard->score_records[index_new_score].time = get_time();
     return true;
 }
+

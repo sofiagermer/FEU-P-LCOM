@@ -46,6 +46,8 @@ void draw_player_names(xpm_image_t font, Score_Record* score_records, uint8_t nu
 
 void draw_player_scores(Leaderboard* leaderboard);
 
+void draw_player_dates(Leaderboard *leaderboard);
+
 void draw_player_score(xpm_image_t font, int xi, int yi, int score);
 
 

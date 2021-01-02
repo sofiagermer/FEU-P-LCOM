@@ -168,24 +168,20 @@ void draw_cursor(Cursor *cursor)
 
 
 void move_cursor(struct packet *packet, Cursor *cursor) {
-  cursor->x += packet->delta_x;
-  if (cursor->x > 790)
-  {
-    cursor->x = 790 - cursor->cursor_image.width;
-  }
-  else if (cursor->x < 0)
-  {
+  if (cursor->x + packet->delta_x < 0)
     cursor->x = 0;
+  else {
+    cursor->x += packet->delta_x;
+    if (cursor->x > 800)
+      cursor->x = 795;
   }
 
-  cursor->y -= packet->delta_y;
-  if (cursor->y > 590)
-  {
-    cursor->y = 590 - cursor->cursor_image.height;
-  }
-  else if (cursor->y < 0)
-  {
+  if (cursor->y - packet->delta_y < 0)
     cursor->y = 0;
+  else {
+    cursor->y -= packet->delta_y;
+    if (cursor->y > 600)
+      cursor->y = 595;
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////
