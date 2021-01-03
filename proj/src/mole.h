@@ -1,3 +1,4 @@
+#pragma once
 #include <lcom/lcf.h>
 
 #include <Sprites/hole.xpm>
@@ -31,7 +32,23 @@
 #define KBD_KEY_5 'L'
 
 typedef enum {HIDED = 0, UP_1, UP_2, UP_3, UP_4, DOWN_MISSED_4, DOWN_MISSED_3, DOWN_MISSED_2, DOWN_MISSED_1, DOWN_HIT_4, DOWN_HIT_3, DOWN_HIT_2, DOWN_HIT_1} Position;
-
+/**
+ * @struct Mole
+ * @var: sprites[13]
+ * Mole's xpm for all it's possible positions
+ * @var:index
+ * Mole index on the game
+ * @var: kbd_key 
+ * Kbd key corresponding to that mole
+ * @var: x
+ * Mole's position on x axis
+ * @var: y
+ * Mole's position on y axis
+ * @var: time_up
+ * Time that the Mole is up
+ * @var: position
+ * Mole's current position
+ * */
 typedef struct  {
     xpm_image_t sprites[13];
     int index;
@@ -41,6 +58,12 @@ typedef struct  {
     Position position;
 } Mole;
 
+/**
+ * @brief Function that create a Mole: loads all mole sprites(for every different mole Position) and sets up all moles variables
+ * */
 Mole* createMole();
 
+/**
+ * @brief Function that draws the mole at it's current position
+ * */
 void draw_mole(Mole* mole);

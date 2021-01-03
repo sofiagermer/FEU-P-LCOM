@@ -1,3 +1,4 @@
+#pragma once
 #ifndef _LCOM_RTC_MACROS_H_
 #define _LCOM_RTC_MACROS_H_
 

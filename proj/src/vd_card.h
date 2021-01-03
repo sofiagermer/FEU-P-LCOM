@@ -1,3 +1,4 @@
+#pragma once
 #ifndef _VD_CARD_H_
 #define _VD_CARD_H_
 

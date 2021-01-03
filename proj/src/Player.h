@@ -1,3 +1,4 @@
+#pragma once
 #include <lcom/lcf.h>
 
 #include <Sprites/player_background.xpm>
@@ -29,6 +30,19 @@
 
 typedef enum {NOT_SELECTED, SELECTED} button_state;
 
+/**
+ * @struct Player
+ * @var: avatar
+ * Player's avatar
+ * @var:missed_moles
+ * How many moles the Player has missed
+ * @var: hitted_moles
+ * How many moles the Player has hitted
+ * @var: name
+ * Player's name
+ * @var: max_name_length
+ * Player's name max size
+ * */
 typedef struct  {
     xpm_image_t avatar;
     int missed_moles;
@@ -37,12 +51,38 @@ typedef struct  {
     int max_name_length;
 } Player;
 
+/**
+ * @struct Avatar
+ * @var: sprites[3]
+ * @var: state
+ * @var:x
+ * @var:y
+ * */
 typedef struct  {
     xpm_image_t sprites[3];
     button_state state;
     uint8_t x,y;
 } Avatar;
 
+/**
+ * @struct Player_Settings
+ * @var: background
+ * Player Setting's backgound xpm
+ * @var: background_title
+ * Player Setting's backgound title xpm
+ * @var: name_length_warning
+ * Player Setting's name has reached maximum length warning xpm
+ * @var: font
+ * Player Setting's font xpm
+ * @var: name_maximum_length
+ * Boolean: false if not reached maximum lenght; else true
+ * @var: avatars[4]
+ * Player Setting's avatars
+ * @var: buttons
+ * Player Setting's buttons
+ * @var: num_buttons
+ * Player Setting's number of buttonfs
+ * */
 typedef struct  {
     xpm_image_t background;
     xpm_image_t background_title;
@@ -55,35 +95,87 @@ typedef struct  {
     int num_buttons;
 } Player_Settings;
 
-
+/**
+ * @brief: loads Player's xpm, sets hitted and missed moles both as null, set's PLayers initial default name and it's name's maximum lenght
+ * @param:default_avatar
+ * @return: player
+ * */
 Player* load_player(Avatar* default_avatar);
 
-
+/**
+ * @brief: loads Avatars's xpm, sets avatars initial state
+ * @param:default_avatar
+ * @return: player
+ * */
 Avatar* load_avatar(xpm_row_t *normal, xpm_row_t *selected, xpm_row_t *small);
 
+/**
+ * @brief loads Player Settings : loads it's xpm and sets it's variavles
+ * @return: player_settings
+ * */
 
 Player_Settings *load_player_settings();
 
-
+/**
+ * @brief: draws Player Settings mode background
+ * @param player_sets
+ * */
 void draw_background__(Player_Settings *player_sets);
 
+/**
+ * @brief: draws Player Settings name lennght waring
+ * @param player_sets
+ * */
 
 void draw_name_lenght_warning(Player_Settings* player_sets);
 
+/**
+ * @brief: draws Player Settings avatar's according to their state
+ * @param player_sets
+ * */
 
 void draw_avatars(Avatar* avatars[]);
 
+/**
+ * @brief: moves one avatar to left, defining it as SELECTED and the other ones as NOT_SELECTED
+ * @param player_sets
+ * */
 
 void move_left_avatar(Player_Settings* player_sets);
 
+/**
+ * @brief: moves one avatar to right, defining it as SELECTED and the other ones as NOT_SELECTED
+ * @param player_sets
+ * */
 
 void move_right_avatar(Player_Settings* player_sets);
 
+/**
+ * @brief: get the hammer sellected by the player 
+ * @param player_sets
+ * @return choosen hammer xpm
+ * */
 
 xpm_image_t get_hammer(Player_Settings* player_sets);
 
 
+/**
+ * @brief: draws Player Nmae
+ * @param font xpm of letter to bue used to right the name
+ * @param xi
+ * @param yi
+ * @param name
+ * @param name_size
+ * */
+
 void draw_player_name(xpm_image_t font, int xi, int yi, char name[], int name_size);
 
+/**
+ * @brief:
+ * @param player_settings
+ * @param player 
+ * @param delete_letter Bool that is true if the Player wants to delete a lette of his name
+ * @param new_letter letter to be added to Player's name
+ * */
 
 void update_player_name(Player_Settings* player_settings, Player *player, bool delete_letter, char new_letter);
