@@ -54,3 +54,26 @@ void draw_mole(Mole *mole)
     xpm_image_t current_img = mole->sprites[(int) mole->position];
     vg_draw_xpm((uint32_t *) current_img.bytes, current_img, mole->x, mole->y);
 }
+
+void draw_all_moles(Mole* moles, int num_moles)
+{
+    for (int i = 0; i < num_moles; i++)
+    {
+        draw_mole(&moles[i]);
+    }
+}
+
+
+bool check_over_mole(Mole *mole, int cursor_x, int cursor_y)
+{
+    int xi, xf, yi, yf;
+    xi = mole->x + 42;
+    yi = mole->y;
+    xf = xi + 90;
+    yf = yi + 60;
+    if (xi <= cursor_x && cursor_x <= xf && yi <= cursor_y && cursor_y <= yf)
+    {
+        return true;
+    }
+    return false;
+}

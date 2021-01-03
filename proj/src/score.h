@@ -1,7 +1,6 @@
 #pragma once
 #include <lcom/lcf.h>
 
-#include <Sprites/leaderboard_background.xpm>
 #include <Sprites/leaderboard_crown.xpm>
 #include <Sprites/leaderboard_table.xpm>
 
@@ -9,8 +8,9 @@
 #include <Sprites/Buttons_img/normal/score_close_normal.xpm>
 #include <Sprites/Buttons_img/active/score_close_active.xpm>
 
-#include "Player.h"
 #include "rtc.h"
+#include "Player.h"
+
 
 /**
  * @struct Score_Record
@@ -35,8 +35,7 @@ typedef struct {
 
 /**
  * @struct Leaderboard
- * @var: background
- * Leaderboard's background xpm
+
  * @var: crown
  * Leaderboard's crown xpm
  * @var: table
@@ -55,7 +54,6 @@ typedef struct {
  * Leaderboard's max name lenght
  * */
 typedef struct  {
-    xpm_image_t background;
     xpm_image_t crown;
     xpm_image_t table;
     xpm_image_t numbers;
@@ -72,25 +70,11 @@ typedef struct  {
  * */
 Leaderboard* load_leaderboard();
 
-//Score_Record* load_score_record(Player* player, int score);
-
-/**
- *  @brief draws leaderboard
- *  @param leaderboard
- * */
-void draw_leaderboard(Leaderboard* leaderboard);
-
-/**
- *  @brief draws leaderboard's background
- *  @param leaderboard
- * */
-void draw_leaderboard_backgound(Leaderboard* leaderboard);
-
 /**
  *  @brief draws leaderboard's table
  *  @param leaderboard
  * */
-void draw_table__(Leaderboard* leaderboard);
+void draw_leaderboard_table(Leaderboard* leaderboard);
 
 /**
  *  @brief draws leaderboard's player names
@@ -140,12 +124,3 @@ void load_scores(Leaderboard* leaderboard);
  * @param player
  * */
 bool add_new_score(Leaderboard* leaderboard, Player* player);
-
-/**
- * @brief : E
- * @param xi
- * @param yi
- * @param name[]
- * @param name_size
- * */
-void draw_player_name_ll(xpm_image_t font, int xi, int yi, char name[], int name_size);

@@ -51,7 +51,7 @@ typedef enum {HIDED = 0, UP_1, UP_2, UP_3, UP_4, DOWN_MISSED_4, DOWN_MISSED_3, D
  * */
 typedef struct  {
     xpm_image_t sprites[13];
-    int index;
+    uint8_t index;
     char kbd_key;
     int x,y;
     int time_up;
@@ -65,5 +65,22 @@ Mole* createMole();
 
 /**
  * @brief Function that draws the mole at it's current position
+ * @param Mole* the mole to be drawn
  * */
 void draw_mole(Mole* mole);
+
+/**
+ * @brief Function that draws some moles at it's current positions
+ * @param Mole* the moles to be drawn
+ * @param int the number of moles to be drawn
+ * */
+void draw_all_moles(Mole* moles, int num_moles);
+
+/**
+ * @brief checks if cursor its over mole
+ * @param Mole* the mole to be checked
+ * @param int cursor_x the x position of the cursor
+  * @param int cursor_y the y position of the cursor
+ * @return bool - true if the cursor is over the mole, false otherwise
+ * */
+bool check_over_mole(Mole *mole, int cursor_x, int cursor_y);

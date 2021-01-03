@@ -3,7 +3,7 @@
 #define X_ORIGIN 0
 #define Y_ORIGIN 0
 
-/* MAIN MENU */
+///////////////////* MAIN MENU *//////////////////////
 
 // LOGO
 #define MENU_LOGO_X 168
@@ -45,7 +45,7 @@
 
 
 
-/* LEADERBOARD */
+//////////////////* LEADERBOARD *//////////////////
 
 // TABLE
 #define LDBRD_TABLE_X 180
@@ -79,7 +79,7 @@
 
 
 
-/* PLAYER SETTINGS */
+//////////////////* PLAYER SETTINGS *//////////////////
 
 //* BUTTONS *//
 
@@ -121,7 +121,7 @@
 
 
 
-/* GAME OVER */
+//////////////////* GAME OVER *//////////////////
 
 //* BUTTONS *//
 
@@ -137,10 +137,33 @@
 #define EXIT_GM_OV_X 300
 #define EXIT_GM_OV_Y 550
 
+// LOGO
+#define GM_OV_LOGO_X 90
+#define GM_OV_LOGO_Y 150
+
+//HIT MOLES TITLE
+#define HIT_MOLES_TITLE_X 110
+#define HIT_MOLES_TITLE_Y 290
+
+//MISS MOLES TITLE
+#define MISS_MOLES_TITLE_X 110
+#define MISS_MOLES_TITLE_Y 350
+
+//HIT MOLES COUNTER
+#define HIT_MOLES_CT_X 500
+#define HIT_MOLES_CT_Y 311
+
+//MISS MOLES TITLE
+#define MISS_MOLES_CT_X 500
+#define MISS_MOLES_CT_Y 370
+
+// BALLON
+#define BALLON_X 400
+#define BALLON_Y 600
 
 
 
-/* SINGLE PLAYER */
+//////////////////* SINGLE PLAYER *//////////////////
 
 //* MOLES *//
 #define FIRST_MOLE_X   150
@@ -172,5 +195,16 @@
 #define MOLES_MISS_FRAME_Y 555
 #define MOLES_MISS_NUM_X 165
 #define MOLES_MISS_NUM_Y 557
+
+
+
+
+//////////////////* EXIT *//////////////////
+
+#define GD_BYE_LOGO_X 0
+#define GD_BYE_LOGO_Y 230
+#define CREDITS_X 550
+#define CREDITS_Y 80
+#define MOLE_ANIMATION_Y 450
 
 

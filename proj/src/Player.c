@@ -39,7 +39,6 @@ Player_Settings *load_player_settings()
 {
   Player_Settings *player_sets = malloc(sizeof(Player_Settings));
 
-  xpm_load(player_background_xpm, XPM_8_8_8_8, &(player_sets->background));
   xpm_load(player_title_xpm, XPM_8_8_8_8, &(player_sets->background_title));
   xpm_load(font_xpm, XPM_8_8_8_8, &(player_sets->font));
   xpm_load(name_length_warning_xpm, XPM_8_8_8_8, &(player_sets->name_length_warning));
@@ -57,16 +56,10 @@ Player_Settings *load_player_settings()
   player_sets->buttons[2] = load_button(NAME_BOX_X, NAME_BOX_Y, name_box_normal_xpm, name_box_active_xpm);
   player_sets->buttons[3] = load_button(START_X, START_Y, start_normal_xpm, start_active_xpm);
 
-  //player_sets->player = load_player(player_sets->avatars[0]);
   player_sets->name_maximum_length = false;
   return player_sets;
 }
 
-void draw_background__(Player_Settings *player_sets)
-{
-  vg_draw_xpm((uint32_t *)player_sets->background.bytes, player_sets->background, X_ORIGIN, Y_ORIGIN);
-  vg_draw_xpm((uint32_t *)player_sets->background_title.bytes, player_sets->background_title, X_ORIGIN, Y_ORIGIN);
-}
 
 void draw_name_lenght_warning(Player_Settings *player_sets)
 {

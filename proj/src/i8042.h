@@ -1,4 +1,3 @@
-#pragma once
 #ifndef _LCOM_I8042_H_
 #define _LCOM_I8042_H_
 

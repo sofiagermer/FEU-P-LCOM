@@ -7,8 +7,7 @@ Menu *load_menu()
 {
   Menu *menu = malloc(sizeof(Menu));
 
-  xpm_load(background_xpm, XPM_8_8_8_8, &(menu->sprites[0]));
-  xpm_load(logo_xpm, XPM_8_8_8_8, &(menu->sprites[1]));
+  xpm_load(logo_xpm, XPM_8_8_8_8, &(menu->sprites[0]));
   menu->num_buttons = 7;
   menu->buttons = (Button**) malloc(sizeof(Button*) * menu->num_buttons);
   menu->buttons[0] = load_button(SINGLE_PLR_X, SINGLE_PLR_Y, singleplayer_normal_xpm, singleplayer_active_xpm);
@@ -21,16 +20,10 @@ Menu *load_menu()
   return menu;
 }
 
-void draw_background(Menu* menu)
-{
-  uint32_t *background_map = (uint32_t *)menu->sprites[0].bytes;
-  vg_draw_xpm(background_map, menu->sprites[0], X_ORIGIN, Y_ORIGIN);
-}
-
 void draw_logo(Menu *menu)
 {
-  uint32_t *logo_map = (uint32_t *)menu->sprites[1].bytes;
-  vg_draw_xpm(logo_map, menu->sprites[1], MENU_LOGO_X, MENU_LOGO_Y);
+  uint32_t *logo_map = (uint32_t *)menu->sprites[0].bytes;
+  vg_draw_xpm(logo_map, menu->sprites[0], MENU_LOGO_X, MENU_LOGO_Y);
 }
 
 void draw_date(xpm_image_t font, int xi, int yi, Date date)

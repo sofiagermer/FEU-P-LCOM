@@ -2,15 +2,12 @@
 #include <stdint.h>
 
 #include "score.h"
-#include "xpm_coordinates.h"
 
 Leaderboard *load_leaderboard()
 {
     //Allocating memory
     Leaderboard *leaderboard = (Leaderboard *)malloc(sizeof(Leaderboard));
 
-    
-    xpm_load(leaderboard_background_xpm, XPM_8_8_8_8, &(leaderboard->background));
     xpm_load(leaderboard_crown_xpm, XPM_8_8_8_8, &(leaderboard->crown));
     xpm_load(leaderboard_table_xpm, XPM_8_8_8_8, &(leaderboard->table));
     xpm_load(score_numbers_xpm, XPM_8_8_8_8, &(leaderboard->numbers));
@@ -34,13 +31,7 @@ Leaderboard *load_leaderboard()
     return leaderboard;
 }
 
-void draw_leaderboard_backgound(Leaderboard *leaderboard)
-{
-    uint32_t *background_map = (uint32_t *)leaderboard->background.bytes;
-    vg_draw_xpm(background_map, leaderboard->background, X_ORIGIN, Y_ORIGIN);
-}
-
-void draw_table__(Leaderboard *leaderboard)
+void draw_leaderboard_table(Leaderboard *leaderboard)
 {
     uint32_t *crown_map = (uint32_t *)leaderboard->crown.bytes;
     vg_draw_xpm(crown_map, leaderboard->crown, LDBRD_CROWN_X, LDBRD_CROWN_Y);
@@ -57,27 +48,6 @@ void draw_player_names(xpm_image_t font, Score_Record* score_records, uint8_t nu
         if (curr_score_record->player_name_size != 0)
             draw_player_name(font, LDBRD_NAME_STEP_FROM_X, i * LDBRD_NAME_STEP_FROM_LINE + LDBRD_NAME_STEP_FROM_Y, curr_score_record->player_name, curr_score_record->player_name_size);
     }
-}
-
-void draw_player_name_ll(xpm_image_t font, int xi, int yi, char name[], int name_size) {
-  uint32_t *font_pixmap = (uint32_t *)font.bytes;
-  int letter_width = font.width / (26/2); // 26 letters in two rows equals 13 letter per row
-  int letter_height = font.height / 2; //two rows of letters
-  int index = 0;
-  for (int i = 0; i < name_size; i++) {
-    if (name[i] == ' ')
-      break;
-    index = (int)name[i] - (int)'A';
-    if (index < 13) {
-        //first row
-        vg_draw_part_of_xpm(font_pixmap, font, xi+i*letter_width, yi, index*letter_width, index*letter_width + letter_width, 0, letter_height);
-    }
-    else {
-        //second row
-        printf("%d\n", letter_height);
-        vg_draw_part_of_xpm(font_pixmap, font, xi+i*letter_width, yi, index*letter_width, index*letter_width + letter_width, letter_height, letter_height*2);
-    }
-  }
 }
 
 void draw_player_scores(Leaderboard *leaderboard)
@@ -152,7 +122,6 @@ void load_scores(Leaderboard *leaderboard)
 
     if (leaderboard_file == NULL)
     {
-        printf("AAAAAAAAAAA\n");
         for (int i = 0; i < leaderboard->num_score_records; i++)
         {
             leaderboard->score_records[i].score = 0;
@@ -200,12 +169,6 @@ bool add_new_score(Leaderboard* leaderboard, Player* player) {
     }
     if (index_new_score == -1)
         return false;
-
-    /*for (int i = (index_new_score+1); i < 5; i++) {
-        if (leaderboard->score_records[i].score == 0)
-            break;
-        leaderboard->score_records[i] = leaderboard->score_records[i-1];
-    }*/
 
     for (int i = leaderboard->num_score_records-1; i > index_new_score; i--) {
         if (leaderboard->score_records[i-1].score == 0)

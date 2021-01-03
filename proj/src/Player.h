@@ -1,7 +1,6 @@
 #pragma once
 #include <lcom/lcf.h>
 
-#include <Sprites/player_background.xpm>
 #include <Sprites/player_title.xpm>
 #include <Sprites/name_length_warning.xpm>
 #include <Sprites/font.xpm>
@@ -113,7 +112,6 @@ Avatar* load_avatar(xpm_row_t *normal, xpm_row_t *selected, xpm_row_t *small);
  * @brief loads Player Settings : loads it's xpm and sets it's variavles
  * @return: player_settings
  * */
-
 Player_Settings *load_player_settings();
 
 /**
@@ -126,28 +124,24 @@ void draw_background__(Player_Settings *player_sets);
  * @brief: draws Player Settings name lennght waring
  * @param player_sets
  * */
-
 void draw_name_lenght_warning(Player_Settings* player_sets);
 
 /**
  * @brief: draws Player Settings avatar's according to their state
  * @param player_sets
  * */
-
 void draw_avatars(Avatar* avatars[]);
 
 /**
  * @brief: moves one avatar to left, defining it as SELECTED and the other ones as NOT_SELECTED
  * @param player_sets
  * */
-
 void move_left_avatar(Player_Settings* player_sets);
 
 /**
  * @brief: moves one avatar to right, defining it as SELECTED and the other ones as NOT_SELECTED
  * @param player_sets
  * */
-
 void move_right_avatar(Player_Settings* player_sets);
 
 /**

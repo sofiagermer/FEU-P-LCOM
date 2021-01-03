@@ -7,6 +7,8 @@
 static int mouse_hook_id = MOUSE_IRQ;   //hook id used for the mouse
 uint8_t packet[3];                      //array of bytes, packet read from the mouse
 bool mouse_last_byte_of_packet = false; //signals that the last byte of a packet was read
+uint8_t delta_x, delta_y;
+bool left_press = false, right_press = false, mid_press = false;
 
 int mouse_subscribe_int(uint16_t *bit_no) {
   *bit_no = BIT(mouse_hook_id);
@@ -263,3 +265,44 @@ int mouse_write_command(uint8_t command, uint8_t*response) {
   return 1;
 }
 
+
+struct mouse_ev mouse_get_event(struct packet *packet) {
+    
+    struct mouse_ev mouse_event;
+
+    mouse_event.delta_x = packet->delta_x;
+    mouse_event.delta_y = packet->delta_y;
+
+    if (left_press && !packet->lb && !right_press && !packet->rb && !mid_press && !packet->mb) {
+        left_press = false;
+        mouse_event.type = LB_RELEASED; 
+    }
+    else if (!left_press && packet->lb && !right_press && !packet->rb && !mid_press && !packet->mb) {
+        left_press = true;
+        mouse_event.type = LB_PRESSED;
+    }
+
+    else if (!left_press && !packet->lb && right_press && !packet->rb && !mid_press && !packet->mb) {
+        right_press = false;
+        mouse_event.type = RB_RELEASED; 
+    }
+    else if (!left_press && !packet->lb && !right_press && packet->rb && !mid_press && !packet->mb) {
+        right_press = true;
+        mouse_event.type = RB_PRESSED; 
+    }
+
+    else if (!mid_press && packet->mb) {
+        mid_press = true;
+        mouse_event.type = BUTTON_EV; 
+    }
+    else if (mid_press && !packet->mb) {
+        mid_press = false;
+        mouse_event.type = BUTTON_EV; 
+    }
+
+    else {
+        mouse_event.type = MOUSE_MOV;
+    }
+        
+    return mouse_event;
+}

@@ -26,9 +26,12 @@ int issue_command_to_mouse(uint8_t command);
 
 uint8_t mouse_read_response();
 
-
-
 int mouse_issue_cmd_to_kbc(uint8_t command, uint8_t argument);
+
 int mouse_kbc_write_cmd(uint8_t command);
+
 int mouse_kbc_write_argument(uint8_t argument);
+
 int mouse_write_command(uint8_t command, uint8_t*response);
+
+struct mouse_ev mouse_get_event(struct packet *packet);
