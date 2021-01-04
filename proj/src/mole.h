@@ -36,19 +36,19 @@
 typedef enum {HIDED = 0, UP_1, UP_2, UP_3, UP_4, DOWN_MISSED_4, DOWN_MISSED_3, DOWN_MISSED_2, DOWN_MISSED_1, DOWN_HIT_4, DOWN_HIT_3, DOWN_HIT_2, DOWN_HIT_1} Position;
 /**
  * @struct Mole
- * @var: sprites[13]
+ * @var Mole:: sprites[13]
  * Mole's xpm for all it's possible positions
- * @var:index
+ * @var Mole::index
  * Mole index on the game
- * @var: kbd_key 
+ * @var Mole::kbd_key 
  * Kbd key corresponding to that mole
- * @var: x
+ * @var Mole::x
  * Mole's position on x axis
- * @var: y
+ * @var Mole::y
  * Mole's position on y axis
- * @var: time_up
+ * @var Mole::time_up
  * Time that the Mole is up
- * @var: position
+ * @var Mole::position
  * Mole's current position
  * */
 typedef struct  {

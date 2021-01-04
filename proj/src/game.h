@@ -41,8 +41,8 @@
 #include "kbd_manager.h"
 #include "mouse.h"
 #include "rtc.h"
-#include "Player.h"
-#include "score.h"
+#include "player_settings.h"
+#include "leaderboard.h"
 
 
 typedef enum {MAIN_MENU, PLAYER_SETTINGS, WAITING, INSTRUCTIONS, SINGLE_PLAYER, MULTI_PLAYER, GAME_OVER, WIN, LOST, LEADERBOARD, EXIT} game_state;

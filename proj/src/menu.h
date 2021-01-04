@@ -52,11 +52,11 @@ void move_cursor(struct packet *packet, Cursor *cursor);
 
 /**
  * @struct Menu
- * @var: sprites[2]
+ * @var Menu:: sprites[2]
  * Menu's sprites xpm
- * @var: buttons
+ * @var Menu:: buttons
  * Menu's buttons
- * @var:num_buttons
+ * @var Menu::num_buttons
  * Menu's number of buttons
  * */
 typedef struct {
