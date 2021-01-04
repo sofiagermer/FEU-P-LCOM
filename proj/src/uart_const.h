@@ -19,7 +19,7 @@
 
 #define FAIL                1
 #define MAX_NO_TRIES        20
-#define DELAY_BYTE          5000
+#define DELAY_BYTE          100000
 
 //PROJ  
 #define NO_BITS_PROJ        8

@@ -17,7 +17,7 @@
 
 #include "vd_card.h"
 
-#define GAME_FPS     12
+#define GAME_FPS     30
 #define MOLE_UP_TIME GAME_FPS*3
 #define GAME_DURATION GAME_FPS*30
 #define MOLE_PROBABILITY 9800

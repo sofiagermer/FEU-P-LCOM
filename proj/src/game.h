@@ -26,6 +26,10 @@
 #include <Sprites/ballon.xpm>
 #include <Sprites/enter_score.xpm>
 
+#include<Sprites/waiting_for_player.xpm>
+#include<Sprites/win.xpm>
+#include<Sprites/lose.xpm>
+
 #include "xpm_coordinates.h"
 #include "i8042.h"
 #include "i8254.h"
@@ -119,6 +123,10 @@ typedef struct {
  * WhackAMole's moles hitted xpm
  * @var: table
  * WhackAMole's table where missed moles and hitted moles will be displayed xpm
+ * @var:game_win
+ * WWhackAMole win message xpm
+ * @var: game_lost
+ * WhackAMole's game lost message xpm
  * @var: timer_irq
  * timer IRQ 
  * @var: keyboard_irq
@@ -162,12 +170,14 @@ typedef struct {
 	xpm_image_t moles_missed;
 	xpm_image_t moles_hitted;
 	xpm_image_t table;
-
+	xpm_image_t game_win;
+	xpm_image_t game_lost;
+	xpm_image_t waiting_for_player;
 	uint8_t timer_irq, keyboard_irq, uart_irq;
 	uint16_t mouse_irq, irq_rtc;
 
 	uint8_t game_time;
-
+	
 	Mole* moles;
 	int num_moles;
 	Menu* menu;
@@ -183,6 +193,7 @@ typedef struct {
 	bool multiplayer;
 	bool opponent_end;
 	bool host;
+	bool sent_hitted_moles;
 	bool running;
 } WhacAMole;
 
