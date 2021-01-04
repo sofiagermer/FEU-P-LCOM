@@ -215,8 +215,8 @@ int ser_send_byte_wait(uint8_t data){
             tickdelay(micros_to_ticks(DELAY_BYTE));
             continue;
         }
-        if(sys_outb(COM1_ADDR + THR, data)) return 1;
         tickdelay(micros_to_ticks(DELAY_BYTE));
+        if(sys_outb(COM1_ADDR + THR, data)) return 1;
         return 0;
     }
     return 1;

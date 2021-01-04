@@ -39,6 +39,10 @@
 #define INSTRC_X 430
 #define INSTRC_Y 441
 
+//WIN/LOSE
+#define WIN_LOSE_X 150
+#define WIN_LOSE_Y 150
+
 // EXIT
 #define EXIT_MENU_X 430
 #define EXIT_MENU_Y 494

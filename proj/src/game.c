@@ -784,7 +784,7 @@ void Game_Over_interrupt_handler(device device, WhacAMole *game)
             ser_byte = UNREQUESTED_BYTE;
             break;
         }
-        else if (ser_byte < MAX_NO_MOLES)
+        if (ser_byte < MAX_NO_MOLES)
         {
             if (ser_byte > game->player->hitted_moles)
                 game->game_state = LOST;
@@ -876,7 +876,7 @@ void Win_interrupt_handler(device device, WhacAMole *game)
             game->sent_hitted_moles = true;
         }
         vg_draw_xpm((uint32_t *)game->background[0].bytes, game->background[0], X_ORIGIN, Y_ORIGIN);
-        vg_draw_xpm((uint32_t *)game->game_win.bytes, game->game_win, 150, 300);
+        vg_draw_xpm((uint32_t *)game->game_win.bytes, game->game_win, WIN_LOSE_X, WIN_LOSE_Y);
         break;
     case KEYBOARD:
         if (scan_code == ESC_BREAK)
@@ -902,8 +902,8 @@ void Lost_interrupt_handler(device device, WhacAMole *game)
             ser_send_byte_wait(game->player->hitted_moles);
             game->sent_hitted_moles = true;
         }
-        vg_draw_xpm((uint32_t *)game->background[1].bytes, game->background[1], X_ORIGIN, Y_ORIGIN);
-        vg_draw_xpm((uint32_t *)game->game_lost.bytes, game->game_lost, 150, 300);
+        vg_draw_xpm((uint32_t *)game->background[0].bytes, game->background[0], X_ORIGIN, Y_ORIGIN);
+        vg_draw_xpm((uint32_t *)game->game_lost.bytes, game->game_lost, WIN_LOSE_X, WIN_LOSE_Y);
         break;
     case KEYBOARD:
         if (scan_code == ESC_BREAK)
