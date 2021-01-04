@@ -191,6 +191,22 @@ int game_main_loop(WhacAMole *new_game)
             }
         }
     }
+    free(new_game->moles);
+    free(new_game->menu->buttons);
+    free(new_game->menu);
+    free(new_game->player_settings->avatars);
+    free(new_game->player_settings->buttons);
+    free(new_game->player_settings);
+    free(new_game->player);
+    free(new_game->cursor);
+    free(new_game->instructions);
+    free(new_game->game_over->buttons);
+    free(new_game->game_over->cursor);
+    free(new_game->game_over);
+    free(new_game->leaderboard->buttons);
+    free(new_game->leaderboard->score_records);
+    free(new_game->leaderboard);
+    free(new_game->exit);
     free(new_game);
     //Unsubscribing all devices
     if (kbd_unsubscribe_int() != OK)

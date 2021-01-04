@@ -51,19 +51,19 @@ typedef enum {TIMER, KEYBOARD, MOUSE, RTC, UART} device;
 /** 
  * @struct GameOver
  * @brief Struct relative to GameOver
- * @var::logo_game_over
+ * @var Gamelogo_game_over
  * Game Over's logo xpm
- * @var:: numbers
+ * @var GameOver:: numbers
  * Game Over's number xpm
- * @var:: missed_moles
+ * @var GameOver:: missed_moles
  * Game Over's  missed_moles xpm
- * @var:: hitted_moles
+ * @var GameOver:: hitted_moles
  * Game Over's hitted_moles xpm
- * @var:: cursor
+ * @var GameOver:: cursor
  * Game Over's cursor
- * @var:: buttons
+ * @var GameOver:: buttons
  * Game Over's buttons
- * @var:: num_buttons
+ * @var GameOver:: num_buttons
  * how many buttons Game Over has
  */
 typedef struct {
@@ -81,13 +81,13 @@ typedef struct {
 /**
  * @struct Exit
  * @bried Struct realtive to Exit
- * @var:: logo
+ * @var GameOver:: logo
  * Exit's logo xpm
- * @var::mole
+ * @var GameOver::mole
  * Exit's mole xpm
- * @var:: credits
+ * @var GameOver:: credits
  * Exit's credits xpm 
- * @var:: x_mole
+ * @var GameOver:: x_mole
  * Exit's mole's initial x axis position
  * 
  * 
@@ -111,53 +111,53 @@ typedef struct {
 
 /**
  * @struct WhackAMole
- * @var: numbers_font
+ * @var GameOver:: numbers_font
  * WhackAMole's numbers font xpm
- * @var: letters_small_font
+ * @var GameOver:: letters_small_font
  * WhackAMole's  small letters font xpm
- * @var: clock_icon
+ * @var GameOver:: clock_icon
  * WhackAMole's clock icon xpm
- * @var: moles_missed
+ * @var GameOver:: moles_missed
  * WhackAMole's moles missed xpm
- * @var: moles_hitted
+ * @var GameOver:: moles_hitted
  * WhackAMole's moles hitted xpm
- * @var: table
+ * @var GameOver:: table
  * WhackAMole's table where missed moles and hitted moles will be displayed xpm
- * @var:game_win
+ * @var GameOver::game_win
  * WWhackAMole win message xpm
- * @var: game_lost
+ * @var GameOver:: game_lost
  * WhackAMole's game lost message xpm
- * @var: timer_irq
+ * @var GameOver:: timer_irq
  * timer IRQ 
- * @var: keyboard_irq
+ * @var GameOver:: keyboard_irq
  * keyboard IRQ
- * @var: mouse_irq
+ * @var GameOver:: mouse_irq
  * mouse IRQ
- * @var: irq_rtc
+ * @var GameOver:: irq_rtc
  * rtc IRQ
- * @var: game_time
+ * @var GameOver:: game_time
  * WhackAMole's game_time
- * @var: moles[6]
+ * @var GameOver:: moles[6]
  * WhackAMole's moles
- * @var: menu
+ * @var GameOver:: menu
  * WhackAMole's menu
- * @var: player_settings
+ * @var GameOver:: player_settings
  * WhackAMole's Player Settings
- * @var: player
+ * @var GameOver:: player
  * WhackAMole's Player
- * @var: cursor
+ * @var GameOver:: cursor
  * WhackAMole's Cursor
- * @var: instructions
+ * @var GameOver:: instructions
  * WhackAMole's Instructions
- * @var: game_over
+ * @var GameOver:: game_over
  * WhackAMole's Game Over
- * @var: leaderboard
+ * @var GameOver:: leaderboard
  * WhackAMole's Leaderboard
- * @var: good_bye
+ * @var GameOver:: good_bye
  * WhackAMole's Good Bye
- * @var: game_state
+ * @var GameOver:: game_state
  * WhackAMole's game state
- * @bool: running
+ * @bool GameOver:: running
  * Boolean : it's true while the user has not yet chosen to exit the game, else it's false 
  * 
  * */

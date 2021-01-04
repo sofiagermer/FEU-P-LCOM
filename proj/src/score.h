@@ -14,43 +14,40 @@
 
 /**
  * @struct Score_Record
- * @var: player_name
+ * @var Score_Record:: player_name
  * Player's name
- * @var: player_name_size
+ * @var Score_Record:: player_name_size
  * Player name's size
- * @var: date
- * //E
- * @var: time
- * //E
- * @var: score
+ * @var Score_Record:: date
+ * Game date
+ * @var Score_Record:: score
  * Player's score
  * */
 typedef struct {
     char* player_name;
     int player_name_size;
     Date date;
-    Time time;
     int score;
 } Score_Record;
 
 /**
  * @struct Leaderboard
 
- * @var: crown
+ * @var Leaderboard:: crown
  * Leaderboard's crown xpm
- * @var: table
+ * @var Leaderboard:: table
  * Leaderboard's crown xpm
- * @var: numbers
+ * @var Leaderboard:: numbers
  * Leaderboard's numbers xpm
- * @var: buttons
+ * @var Leaderboard:: buttons
  * Leaderboard's buttons
- * @var: num_buttons
+ * @var Leaderboard:: num_buttons
  * Number of Buttons of LeaderBoard
- * @var: score_records
+ * @var Leaderboard:: score_records
  * Leaderboard's Score_Record
- * @var: num_score_records
+ * @var Leaderboard:: num_score_records
  * Leaderboard's num of score records 
- * @var: max_name_length
+ * @var Leaderboard:: max_name_length
  * Leaderboard's max name lenght
  * */
 typedef struct  {
@@ -107,19 +104,19 @@ void draw_player_dates(Leaderboard *leaderboard);
 void draw_player_score(xpm_image_t font, int xi, int yi, int score);
 
 /**
- * @brief: E
+ * @brief: Function that saves scores information on txt file
  * @param leaderboard
  * */
 void save_scores(Leaderboard* leaderboard);
 
 /**
- * @brief: E
+ * @brief: Function that reads scores information of txt file
  * @param leaderboard
  * */
 void load_scores(Leaderboard* leaderboard);
 
 /**
- * @brief: E
+ * @brief: Function that adds new score to stuct if the score is better than the last placed scoree
  * @param leaderboard
  * @param player
  * */

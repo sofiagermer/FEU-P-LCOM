@@ -3,12 +3,30 @@
 
 #include <lcom/lcf.h>
 
+/**
+ * @struct Date
+ * @var Date::year
+ * Actual year
+ * @var Date::month
+ * Acual month
+ * @var Date::day
+ * Actual day
+ * */
 typedef struct{
     uint32_t year;
     uint32_t month;
     uint32_t day;
 } Date;
 
+/**
+ * @struct Time 
+ * @var Time:: hour
+ * Actual hour
+ * @var Time:: minute
+ * Actual minute
+ * @var Time:: second
+ * Actual second
+ * */
 typedef struct{
     uint32_t hour;
     uint32_t minute;
