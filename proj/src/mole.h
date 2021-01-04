@@ -20,9 +20,11 @@
 #define GAME_FPS     12
 #define MOLE_UP_TIME GAME_FPS*3
 #define GAME_DURATION GAME_FPS*30
-#define MOLE_PROBABILITY 9950
+#define MOLE_PROBABILITY 9800
+#define MOLE_PROBABILITY_MULTIPLAYER  9700
 #define TIME_UP_LIMIT_DECREMENT 1
 #define PROBABILITY_LIMIT_DECREMENT  50
+#define MAX_NO_MOLES  62
 
 #define KBD_KEY_0 'A'
 #define KBD_KEY_1 'S'
@@ -84,3 +86,6 @@ void draw_all_moles(Mole* moles, int num_moles);
  * @return bool - true if the cursor is over the mole, false otherwise
  * */
 bool check_over_mole(Mole *mole, int cursor_x, int cursor_y);
+
+
+void reset_moles(Mole* moles, int num_moles);

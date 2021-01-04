@@ -77,3 +77,12 @@ bool check_over_mole(Mole *mole, int cursor_x, int cursor_y)
     }
     return false;
 }
+
+
+void reset_moles(Mole* moles, int num_moles) {
+    for (int i = 0; i < num_moles; i++) {
+        moles[i].position = HIDED;
+        moles[i].time_up = 0;
+    }
+}
+

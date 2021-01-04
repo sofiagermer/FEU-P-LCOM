@@ -59,6 +59,7 @@ WhacAMole *load_game()
     new_game->game_state = MAIN_MENU;
     new_game->host = true;
     new_game->multiplayer = false;
+    new_game->opponent_end = false;
     new_game->running = true;
     return new_game;
 }
@@ -68,7 +69,6 @@ GameOver *load_game_over()
     GameOver *game_over = (GameOver *)malloc(sizeof(GameOver));
 
     xpm_load(game_over_xpm, XPM_8_8_8_8, &(game_over->logo_game_over));
-    xpm_load(enter_score_xpm, XPM_8_8_8_8, &(game_over->title_new_score));
     xpm_load(ballon_xpm, XPM_8_8_8_8, &(game_over->ballon));
     xpm_load(game_over_missed_moles_xpm, XPM_8_8_8_8, &(game_over->missed_moles));
     xpm_load(game_over_hitted_moles_xpm, XPM_8_8_8_8, &(game_over->hitted_moles));
@@ -131,10 +131,12 @@ int game_main_loop(WhacAMole *new_game)
         return 1;
     }
     new_game->irq_rtc = BIT(irq_auxiliar);
-    if (ser_subscribe_int(&irq_auxiliar) != OK) {
+    if (ser_subscribe_int(&irq_auxiliar) != OK)
+    {
         return 1;
     }
     new_game->uart_irq = BIT(irq_auxiliar);
+    ser_flush_rx();
 
     while (new_game->running)
     {
@@ -240,6 +242,12 @@ void GeneralInterrupt(device device, WhacAMole *new_game)
     case GAME_OVER:
         Game_Over_interrupt_handler(device, new_game);
         break;
+    case WIN:
+        Win_interrupt_handler(device, new_game);
+        break;
+    case LOST:
+        Lost_interrupt_handler(device, new_game);
+        break;
     case LEADERBOARD:
         Leaderboard_interrupt_handler(device, new_game);
         break;
@@ -276,11 +284,13 @@ void Main_Menu_interrupt_handler(device device, WhacAMole *game)
         mouse_event = mouse_get_event(&new_packet);
         move_cursor(&new_packet, game->cursor);
         update_buttons(game->cursor, game->menu->buttons, game->menu->num_buttons);
-        if (game->menu->buttons[0]->state == ACTIVE && mouse_event.type == LB_RELEASED) {
+        if (game->menu->buttons[0]->state == ACTIVE && mouse_event.type == LB_RELEASED)
+        {
             game->game_state = PLAYER_SETTINGS;
             game->multiplayer = false;
         }
-        else if (game->menu->buttons[1]->state == ACTIVE && mouse_event.type == LB_RELEASED) {
+        else if (game->menu->buttons[1]->state == ACTIVE && mouse_event.type == LB_RELEASED)
+        {
             game->game_state = PLAYER_SETTINGS;
             game->multiplayer = true;
         }
@@ -378,10 +388,15 @@ void Player_Settings_interrupt_handler(device device, WhacAMole *game)
         {
             game->cursor->cursor_image = get_hammer(player_sets);
             if (!game->multiplayer)
-                game->game_state = SINGLE_PLAYER;   
-            else{ 
-                ser_send_byte(CONFIRMATION);
+                game->game_state = SINGLE_PLAYER;
+            else if (game->host)
+            {
                 game->game_state = WAITING;
+            }
+            else
+            {
+                ser_send_byte(CONFIRMATION);
+                game->game_state = MULTI_PLAYER;
             }
         }
         break;
@@ -389,29 +404,27 @@ void Player_Settings_interrupt_handler(device device, WhacAMole *game)
         break;
     case UART:
         ser_ih();
-        if(ser_byte == READY_TO_PLAY_FROM_HOST){
+        if (ser_byte == READY_TO_PLAY_FROM_HOST)
+        {
             game->host = false;
         }
-        else ser_byte = UNREQUESTED_BYTE;
+        else
+            ser_byte = UNREQUESTED_BYTE;
         break;
     }
 }
 
 void Waiting_interrupt_handler(device device, WhacAMole *game)
 {
-    //struct mouse_ev mouse_event;
-    //struct packet new_packet;
     switch (device)
     {
     case TIMER:
-        if(!game->host){
-            game->game_state = MULTI_PLAYER;
-            break;
-        }
         vg_draw_xpm((uint32_t *)game->background[1].bytes, game->background[1], X_ORIGIN, Y_ORIGIN);
         ser_send_byte(READY_TO_PLAY_FROM_HOST);
         break;
     case KEYBOARD:
+        if (scan_code == ESC_BREAK)
+            game->game_state = EXIT;
         break;
     case MOUSE:
         break;
@@ -421,11 +434,6 @@ void Waiting_interrupt_handler(device device, WhacAMole *game)
         ser_ih();
         switch (ser_byte)
         {
-        case READY_TO_PLAY_FROM_HOST:
-            ser_send_byte(CONFIRMATION);
-            game->host = true;
-            game->game_state = MULTI_PLAYER;
-            break;
         case CONFIRMATION:
             game->host = true;
             game->game_state = MULTI_PLAYER;
@@ -437,7 +445,6 @@ void Waiting_interrupt_handler(device device, WhacAMole *game)
         break;
     }
 }
-
 
 void Single_Player_interrupt_handler(device device, WhacAMole *game)
 {
@@ -488,6 +495,7 @@ void Single_Player_interrupt_handler(device device, WhacAMole *game)
         if (time_duration / GAME_FPS >= game->game_time)
         {
             game->game_state = GAME_OVER;
+            time_duration = 0;
             game->cursor->cursor_image = game->cursor->cursor_image_default;
         }
         break;
@@ -517,7 +525,7 @@ void Single_Player_interrupt_handler(device device, WhacAMole *game)
         mouse_event = mouse_get_event(&new_packet);
         move_cursor(&new_packet, game->cursor);
         if (mouse_event.type == LB_RELEASED)
-        {   
+        {
             game->player->missed_moles++;
             for (int i = 0; i < game->num_moles; i++)
             {
@@ -552,14 +560,16 @@ void Multi_Player_interrupt_handler(device device, WhacAMole *game)
     switch (device)
     {
     case TIMER:
-    if(game->host){
-        vg_draw_xpm((uint32_t *)game->background[0].bytes, game->background[0], X_ORIGIN, Y_ORIGIN);
+        if (game->host)
+        {
+            vg_draw_xpm((uint32_t *)game->background[0].bytes, game->background[0], X_ORIGIN, Y_ORIGIN);
         }
-    else{
-        vg_draw_xpm((uint32_t *)game->background[1].bytes, game->background[1], X_ORIGIN, Y_ORIGIN);
-    }    
-        
-            draw_all_moles(game->moles, game->num_moles);
+        else
+        {
+            vg_draw_xpm((uint32_t *)game->background[1].bytes, game->background[1], X_ORIGIN, Y_ORIGIN);
+        }
+
+        draw_all_moles(game->moles, game->num_moles);
         vg_draw_xpm((uint32_t *)game->table.bytes, game->table, SCORE_TABLE_X, SCORE_TABLE_Y);
         vg_draw_xpm((uint32_t *)game->moles_hitted.bytes, game->moles_hitted, MOLES_MISS_FRAME_X, MOLES_MISS_FRAME_Y);
         vg_draw_xpm((uint32_t *)game->moles_missed.bytes, game->moles_missed, MOLES_HIT_FRAME_X, MOLES_HIT_FRAME_Y);
@@ -569,16 +579,17 @@ void Multi_Player_interrupt_handler(device device, WhacAMole *game)
         draw_number(game->game_time_numbers_font, 10, GAME_TIMER_X, GAME_TIMER_Y, time_duration / GAME_FPS, true);
         draw_cursor(game->cursor);
         time_duration++;
+        bool created_mole = false;
         for (uint8_t mole_index = 0; mole_index < 6; mole_index++)
         {
             Mole *ml = &game->moles[mole_index];
             //if (rand() % 10000 > MOLE_PROBABILITY - (((timer_counter / (sys_hz() / GAME_FPS)) / GAME_DURATION) * PROBABILITY_LIMIT_DECREMENT))
-            if (game->host && ml->position == HIDED && (rand() % 10000 > MOLE_PROBABILITY+30))
+            if (game->host && !created_mole && ml->position == HIDED && (rand() % 10000 > MOLE_PROBABILITY_MULTIPLAYER))
             {
                 ml->position = UP_1;
                 ml->time_up = 0;
+                created_mole = true;
                 ser_send_byte(MOLE_UP | mole_index);
-                
             }
             else if (ml->position == UP_4)
             {
@@ -599,6 +610,7 @@ void Multi_Player_interrupt_handler(device device, WhacAMole *game)
         }
         if (time_duration / GAME_FPS >= game->game_time)
         {
+            ser_send_byte(GAME_OVER_BYTE);
             game->game_state = GAME_OVER;
             game->cursor->cursor_image = game->cursor->cursor_image_default;
         }
@@ -630,7 +642,7 @@ void Multi_Player_interrupt_handler(device device, WhacAMole *game)
         mouse_event = mouse_get_event(&new_packet);
         move_cursor(&new_packet, game->cursor);
         if (mouse_event.type == LB_RELEASED)
-        {   
+        {
             game->player->missed_moles++;
             for (uint8_t mole_index = 0; mole_index < game->num_moles; mole_index++)
             {
@@ -650,24 +662,30 @@ void Multi_Player_interrupt_handler(device device, WhacAMole *game)
         break;
     case UART:
         ser_ih();
-        if(game->host){
-            printf("HOST :::::   %d\n", ser_byte);
-        }
-        else{
-            printf("Guest :::::   %d\n", ser_byte);
-        }
-        if(ser_byte & IRRELEVANT_BYTE){
+        if (ser_byte & IRRELEVANT_BYTE)
+        {
             ser_byte = UNREQUESTED_BYTE;
             break;
         }
-        if(ser_byte & MOLE_UP){
-            if(game->moles[ser_byte & MOLE_NO].position == HIDED){
+        else if (ser_byte == GAME_OVER_BYTE)
+        {
+            game->game_state = GAME_OVER;
+            game->opponent_end = true;
+            game->cursor->cursor_image = game->cursor->cursor_image_default;
+            break;
+        }
+        else if (ser_byte & MOLE_UP)
+        {
+            if (game->moles[ser_byte & MOLE_NO].position == HIDED)
+            {
                 game->moles[ser_byte & MOLE_NO].position = UP_1;
                 game->moles[ser_byte & MOLE_NO].time_up = 0;
             }
         }
-        else{
-            if(game->moles[ser_byte & MOLE_NO].position == UP_4){
+        else
+        {
+            if (game->moles[ser_byte & MOLE_NO].position == UP_4)
+            {
                 game->moles[ser_byte & MOLE_NO].time_up = 0;
                 game->moles[ser_byte & MOLE_NO].position = DOWN_HIT_4;
             }
@@ -687,8 +705,18 @@ void Game_Over_interrupt_handler(device device, WhacAMole *game)
     switch (device)
     {
     case TIMER:
+        if (game->multiplayer && game->opponent_end)
+        {
+            ser_send_byte(game->player->hitted_moles);
+            break;
+        }
+        if (game->multiplayer)
+            break;
+        if (add_new_score(game->leaderboard, game->player) && !game_over->new_score)
+        {
+            game_over->new_score = true;
+        }
         vg_draw_xpm((uint32_t *)game->background[0].bytes, game->background[0], X_ORIGIN, Y_ORIGIN);
-        vg_draw_xpm((uint32_t *)game_over->title_new_score.bytes, game_over->title_new_score, X_ORIGIN, Y_ORIGIN);
         vg_draw_xpm((uint32_t *)game_over->logo_game_over.bytes, game_over->logo_game_over, GM_OV_LOGO_X, GM_OV_LOGO_Y);
         vg_draw_xpm((uint32_t *)game_over->hitted_moles.bytes, game_over->hitted_moles, HIT_MOLES_TITLE_X, HIT_MOLES_TITLE_Y);
         vg_draw_xpm((uint32_t *)game_over->missed_moles.bytes, game_over->missed_moles, MISS_MOLES_TITLE_X, MISS_MOLES_TITLE_Y);
@@ -699,21 +727,19 @@ void Game_Over_interrupt_handler(device device, WhacAMole *game)
             draw_button(game_over->buttons[i]);
         }
         draw_cursor(game->cursor);
-        if (game_over->new_score) {
+        if (game_over->new_score)
+        {
             y_auxiliar += 25;
-            vg_draw_xpm((uint32_t *)game_over->ballon.bytes, game_over->ballon, BALLON_X, BALLON_Y-y_auxiliar);
+            vg_draw_xpm((uint32_t *)game_over->ballon.bytes, game_over->ballon, BALLON_X, BALLON_Y - y_auxiliar);
         }
         break;
     case KEYBOARD:
-        if (scan_code == ENTER_BREAK) {
-            game_over->new_score = true;
-            if (add_new_score(game->leaderboard, game->player)) {
-                game_over->new_score = true;
-            }
-        }
-            
         break;
     case MOUSE:
+        if (game->multiplayer)
+        {
+            break;
+        }
         mouse_parse_packet(packet, &new_packet);
         mouse_event = mouse_get_event(&new_packet);
         move_cursor(&new_packet, game->cursor);
@@ -722,9 +748,16 @@ void Game_Over_interrupt_handler(device device, WhacAMole *game)
         {
             game->player_settings = load_player_settings();
             game->game_state = MAIN_MENU;
+            reset_moles(game->moles, game->num_moles);
+            game->player->hitted_moles = 0;
+            game->player->missed_moles = 0;
         }
-        if (game->game_over->buttons[1]->state == ACTIVE && mouse_event.type == LB_RELEASED) {
+        if (game->game_over->buttons[1]->state == ACTIVE && mouse_event.type == LB_RELEASED)
+        {
             game->game_state = LEADERBOARD;
+            reset_moles(game->moles, game->num_moles);
+            game->player->hitted_moles = 0;
+            game->player->missed_moles = 0;
         }
         if (game->game_over->buttons[2]->state == ACTIVE && mouse_event.type == LB_RELEASED)
             game->game_state = EXIT;
@@ -733,7 +766,24 @@ void Game_Over_interrupt_handler(device device, WhacAMole *game)
         break;
     case UART:
         ser_ih();
-        ser_byte = UNREQUESTED_BYTE;
+        if (ser_byte & IRRELEVANT_BYTE)
+        {
+            ser_byte = UNREQUESTED_BYTE;
+            break;
+        }
+        else if (ser_byte == GAME_OVER_BYTE)
+        {
+            game->opponent_end = true;
+            ser_byte = UNREQUESTED_BYTE;
+            break;
+        }
+        else if (game->opponent_end && ser_byte < MAX_NO_MOLES)
+        {
+            if (ser_byte > game->player->hitted_moles)
+                game->game_state = LOST;
+            else
+                game->game_state = WIN;
+        }
         break;
     }
 }
@@ -809,8 +859,49 @@ void Exit_interrupt_handler(device device, WhacAMole *game)
     }
 }
 
+void Win_interrupt_handler(device device, WhacAMole *game)
+{
+    switch (device)
+    {
+    case TIMER:
+        vg_draw_xpm((uint32_t *)game->background[0].bytes, game->background[0], X_ORIGIN, Y_ORIGIN);
+        break;
+    case KEYBOARD:
+        if (scan_code == ESC_BREAK)
+            game->game_state = EXIT;
+        break;
+    case MOUSE:
+        break;
+    case RTC:
+        break;
+    case UART:
+        ser_ih();
+        ser_byte = UNREQUESTED_BYTE;
+        break;
+    }
+}
 
-
+void Lost_interrupt_handler(device device, WhacAMole *game)
+{
+    switch (device)
+    {
+    case TIMER:
+        vg_draw_xpm((uint32_t *)game->background[1].bytes, game->background[1], X_ORIGIN, Y_ORIGIN);
+        break;
+    case KEYBOARD:
+        if (scan_code == ESC_BREAK)
+            game->game_state = EXIT;
+        break;
+    case MOUSE:
+        break;
+    case RTC:
+        break;
+    case UART:
+        ser_ih();
+        ser_byte = UNREQUESTED_BYTE;
+        break;
+    }
+}
 
 void draw_number(xpm_image_t font, int font_info, int xi, int yi, int number, bool left_number_drawing)
 {

@@ -41,7 +41,7 @@
 #include "score.h"
 
 
-typedef enum {MAIN_MENU, PLAYER_SETTINGS, WAITING, INSTRUCTIONS, SINGLE_PLAYER, MULTI_PLAYER, GAME_OVER, LEADERBOARD, EXIT} game_state;
+typedef enum {MAIN_MENU, PLAYER_SETTINGS, WAITING, INSTRUCTIONS, SINGLE_PLAYER, MULTI_PLAYER, GAME_OVER, WIN, LOST, LEADERBOARD, EXIT} game_state;
 typedef enum {TIMER, KEYBOARD, MOUSE, RTC, UART} device;
 
 /** 
@@ -64,7 +64,6 @@ typedef enum {TIMER, KEYBOARD, MOUSE, RTC, UART} device;
  */
 typedef struct {
 	xpm_image_t logo_game_over;
-	xpm_image_t title_new_score;
 	xpm_image_t ballon;
 	xpm_image_t numbers;
 	xpm_image_t missed_moles;
@@ -182,6 +181,7 @@ typedef struct {
 
 	game_state game_state;
 	bool multiplayer;
+	bool opponent_end;
 	bool host;
 	bool running;
 } WhacAMole;
@@ -238,6 +238,8 @@ void Player_Settings_interrupt_handler(device device, WhacAMole *new_game);
 
 
 void Waiting_interrupt_handler(device device, WhacAMole *new_game);
+void Win_interrupt_handler(device device, WhacAMole *new_game);
+void Lost_interrupt_handler(device device, WhacAMole *new_game);
 
 
 /**

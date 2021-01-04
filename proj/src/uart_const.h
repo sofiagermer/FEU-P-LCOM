@@ -5,9 +5,10 @@
 
 //COMMUNICATION BYTES
 #define UNREQUESTED_BYTE                0xFF
+#define GAME_OVER_BYTE                  0x3F
 #define READY_TO_PLAY_FROM_HOST         0x10
 #define CONFIRMATION                    0x11
-#define IRRELEVANT_BYTE                 (BIT(7)|BIT(6)|BIT(5)|BIT(4))
+#define IRRELEVANT_BYTE                 BIT(7)
 //MOLE BYTES
 #define MOLE_DOWN                       0
 #define MOLE_UP                         BIT(3)
@@ -18,12 +19,12 @@
 
 #define FAIL                1
 #define MAX_NO_TRIES        20
-#define DELAY_US            20000
+#define DELAY_BYTE          5000
 
 //PROJ  
 #define NO_BITS_PROJ        8
-#define NO_STOP_BITS_PROJ   1
-#define PARITY_PROJ         1  //ODD
+#define NO_STOP_BITS_PROJ   2
+#define PARITY_PROJ         -1  //NONE
 #define BITRATE_PROJ        115200
 
 //UART  

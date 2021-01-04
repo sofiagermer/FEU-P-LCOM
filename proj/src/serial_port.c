@@ -159,6 +159,15 @@ int (ser_unsubscribe_int)(){
     return OK;
 }
 
+int ser_flush_rx(){
+    uint8_t dummy;
+    while(ser_can_read()){
+        if(ser_read_byte(&dummy)) return 1;
+        printf("treata  %d\n", dummy);
+    }
+    return 0;
+}
+
 int ser_can_read(){
     uint8_t lsr;
     if(util_sys_inb(COM1_ADDR + LSR, &lsr)) return 1;
@@ -190,7 +199,7 @@ int ser_send_byte(uint8_t data){
     int no_tries = MAX_NO_TRIES;
     while((no_tries--)>0){
         if(!ser_can_send()){
-            tickdelay(micros_to_ticks(DELAY_US));
+            tickdelay(micros_to_ticks(DELAY_BYTE));
             continue;
         }
         if(sys_outb(COM1_ADDR + THR, data)) return 1;
@@ -199,9 +208,22 @@ int ser_send_byte(uint8_t data){
     return 1;
 }
 
+int ser_send_byte_wait(uint8_t data){
+    int no_tries = MAX_NO_TRIES;
+    while((no_tries--)>0){
+        if(!ser_can_send()){
+            tickdelay(micros_to_ticks(DELAY_BYTE));
+            continue;
+        }
+        if(sys_outb(COM1_ADDR + THR, data)) return 1;
+        tickdelay(micros_to_ticks(DELAY_BYTE));
+        return 0;
+    }
+    return 1;
+}
+
 int ser_send_info(uint8_t* data, unsigned int length){
     for(unsigned int i = 0; i<length ; i++ ){
-        tickdelay(micros_to_ticks(DELAY_US));
         if(ser_send_byte(data[i])) return 1;
     }
     return 0;
@@ -210,19 +232,16 @@ int ser_send_info(uint8_t* data, unsigned int length){
 int ser_read_byte(uint8_t* data){
     int no_tries = MAX_NO_TRIES;
     while((no_tries--)>0){
-        printf("ola6\n");
         if(ser_can_read() == 2) {
             error_reading = true;            
             return 1;
         }
-        printf("ola7\n");
         if(ser_can_read() == 1){
-            tickdelay(micros_to_ticks(DELAY_US));
+            tickdelay(micros_to_ticks(DELAY_BYTE));
             continue;
         }
-        printf("ola8\n");
-        if(util_sys_inb(COM1_ADDR + RBR, data))return 1;
-        printf("ola2\n");
+        if(util_sys_inb(COM1_ADDR + RBR, data))
+		return 1;
         return 0;
     }
     return 1;
@@ -232,14 +251,12 @@ void ser_ih(){
     uint8_t iir;
     if(util_sys_inb(COM1_ADDR + IIR, &iir)) {
         error_reading = true;
-        printf("oal123\n");
         return;
     }
     if( (iir & INT_STATUS) == INT_PENDING ) {
         switch( iir & INT_ORIGIN ) {
         case INT_ORIG_REC_DATA_AVAIL:
             ser_read_byte(&ser_byte);
-            printf("ola\n");
             return;
         case INT_ORIG_LINE_STATUS:
             printf("ERROR ON UART's Receiver Buffer!\n");

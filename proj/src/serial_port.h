@@ -50,9 +50,15 @@ int (ser_unsubscribe_int)();
 
 /**
 Checks if it is possible to read the ReceiverBuffer, and checks for errors 
-@return int - 2 if there is an error in the REceiver Buffer, 1 if there was an error, 0 otherwise
+@return int - 2 if there is an error in the Receiver Buffer, 1 if there was an error, 0 otherwise
 */
 int ser_can_read();
+
+/**
+Cleans the Receiver Buffer.
+@return int - 1 if there was an error, 0 otherwise
+*/ 
+int ser_flush_rx();
 
 /**
 Checks if there is an error in the Receiver Buffer
@@ -72,6 +78,13 @@ Sends a byte to the Serial Port (COM 1)'s Transmitter Holding
 @return int - 1 if there was an error, 0 otherwise
 */
 int ser_send_byte(uint8_t data);
+
+/**
+Sends a byte to the Serial Port (COM 1)'s Transmitter Holding and the waits
+@param uint8_t - byte to send 
+@return int - 1 if there was an error, 0 otherwise
+*/
+int ser_send_byte_wait(uint8_t data);
 
 /**
 Sends a number of bytes to the Serial Port (COM 1)'s Transmitter Holding
